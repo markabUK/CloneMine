@@ -1,5 +1,7 @@
 # CloneMine
 
+[![Build](https://github.com/markabUK/CloneMine/actions/workflows/build.yml/badge.svg)](https://github.com/markabUK/CloneMine/actions/workflows/build.yml)
+
 A Minecraft-inspired voxel game engine built with modern C++20, featuring Vulkan rendering, secure Lua plugin support, and cross-platform compatibility.
 
 ## Features
