@@ -15,12 +15,15 @@ The build pipeline automatically builds the project on:
 #### Platforms
 
 **Linux (Ubuntu Latest)**
-- Installs system dependencies (Vulkan SDK, development libraries)
+- Installs system dependencies:
+  - Vulkan SDK and development libraries
+  - Wayland and X11 support for GLFW
+  - CMake and build tools
 - Configures and builds with CMake
 - Uploads executable as artifact
 
 **Windows (Latest)**
-- Installs Vulkan SDK
+- Uses `humbletim/setup-vulkan-sdk` GitHub Action for reliable Vulkan SDK installation
 - Configures and builds with CMake (Release configuration)
 - Uploads executable as artifact
 

@@ -28,6 +28,10 @@ jobs:
           libxinerama-dev \
           libxcursor-dev \
           libxi-dev \
+          libwayland-dev \
+          libxkbcommon-dev \
+          wayland-protocols \
+          extra-cmake-modules \
           mesa-common-dev
     
     - name: Configure CMake
@@ -56,12 +60,11 @@ jobs:
       with:
         submodules: recursive
     
-    - name: Install Vulkan SDK
-      run: |
-        Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe" -OutFile vulkan-sdk.exe
-        Start-Process -FilePath .\vulkan-sdk.exe -ArgumentList '/S' -Wait
-        echo "VULKAN_SDK=C:\VulkanSDK\1.3.280.0" >> $env:GITHUB_ENV
-      shell: pwsh
+    - name: Setup Vulkan SDK
+      uses: humbletim/setup-vulkan-sdk@v1.2.0
+      with:
+        vulkan-query-version: latest
+        vulkan-use-cache: true
     
     - name: Configure CMake
       run: |
