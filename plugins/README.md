@@ -1,267 +1,179 @@
-# CloneMine Plugins
+# CloneMine Plugins - D&D-Style RPG System
 
-This directory contains example Lua plugins demonstrating the CloneMine plugin system.
+This directory contains Lua plugins implementing a complete D&D-inspired RPG system.
 
-## Available Plugins
+## Core Systems
 
-### 1. example.lua
-Basic plugin demonstrating the core plugin API hooks:
-- `onLoad()` - Called when plugin loads
-- `onUpdate(deltaTime)` - Called every frame
-- `onInput()` - Handle input events
-- `onRender()` - Called during rendering
+### 1. character_classes.lua
+**D&D-Style Character Class System**
 
-### 2. custom_blocks.lua
-Adds 8 new block types with properties:
+Implements 7 playable classes with unique mechanics:
 
-**Blocks:**
-- **Obsidian** - Very hard, high blast resistance
-- **Gold Ore** - Drops gold nuggets
-- **Diamond Ore** - Drops diamonds
-- **Emerald Ore** - Drops emeralds
-- **Glass** - Transparent block
-- **Brick** - Durable building material
-- **Ice** - Transparent, slippery surface
-- **Lava** - Luminous, damaging liquid
+**Classes:**
+- **Wizard** - INT-based mana caster
+  - Weapons: Staff, Wand, Dagger | Armor: Cloth
+  - Abilities: Magic Missile, Fireball, Ice Storm, Lightning Bolt, Meteor
 
-**Features:**
-- Block definitions with hardness, transparency, and special properties
-- Ore generation functions
-- Drop item system
+- **Sorcerer** - CHA-based mana caster  
+  - Weapons: Staff, Wand, Dagger | Armor: Cloth
+  - Abilities: Chaos Bolt, Wild Magic Surge, Arcane Barrage, Time Stop, Wish
 
-### 3. items.lua
-Complete item system with materials, tools, and consumables:
+- **Priest** - WIS-based mana healer
+  - Weapons: Mace, Staff, Wand | Armor: Cloth, Leather, Mail | Shield: Yes
+  - Abilities: Heal, Holy Smite, Divine Shield, Mass Heal, Resurrection
 
-**Materials (8 items):**
-- Stick, Coal, Iron Ingot, Gold Ingot
-- Diamond, Emerald, Leather, String
+- **Fighter** - STR-based energy warrior
+  - Weapons: All | Armor: All | Dual-Wield: Yes | Shield: Yes
+  - Abilities: Power Strike, Whirlwind, Execute, Battle Cry, Bladestorm
 
-**Tools (4 pickaxes):**
-- Wooden, Stone, Iron, Diamond
-- Each with durability and mining speed stats
+- **Ranger** - DEX-based focus user with pet
+  - Weapons: Bow, Crossbow, Sword, Dagger, Spear | Armor: Cloth, Leather, Mail | Dual-Wield: Yes
+  - Abilities: Aimed Shot, Call Pet, Multi-Shot, Trap, Camouflage, Barrage
 
-**Consumables (4 items):**
-- Apple, Bread, Cooked Meat, Golden Apple
-- Healing and status effect properties
+- **Warlock** - CHA-based soul energy with pet
+  - Weapons: Staff, Wand, Dagger | Armor: Cloth, Leather
+  - Abilities: Shadow Bolt, Summon Demon, Curse of Weakness, Drain Life, Fear, Soul Siphon
+
+- **Druid** - WIS-based nature power shapeshifter
+  - Weapons: Staff, Dagger, Mace | Armor: Cloth, Leather
+  - Abilities: Wrath, Bear Form, Healing Touch, Moonfire, Cat Form, Starfall
 
 **Features:**
-- Item categories and rarity system
-- Stack size limits
-- Durability tracking
-- Consumable effects
+- D&D stats: STR, DEX, CON, INT, WIS, CHA
+- Resources regen faster out of combat (10/s) vs in combat (2/s)
+- Level progression with XP system
+- 3 stat points per level
+- Abilities unlock at specific levels
 
-### 4. armor.lua
-Comprehensive armor system with protection values:
+### 2. equipment_system.lua
+**Complete Equipment System**
 
-**Armor Materials (5 types):**
-- Leather (Total Protection: 8)
-- Chainmail (Total Protection: 12)
-- Iron (Total Protection: 15)
-- Gold (Total Protection: 11, high enchantability)
-- Diamond (Total Protection: 20)
+**11 Equipment Slots:**
+- Weapons: Main Hand, Off Hand
+- Armor: Helmet, Shoulder, Chest, Belt, Bracer, Gloves, Legs, Boots
+- Jewelry: Necklace, Ring 1, Ring 2
 
-**Features:**
-- Four armor slots: Helmet, Chestplate, Leggings, Boots
-- Durability system for each piece
-- Enchantment support
-- Total protection calculation
-- Armor damage and repair
+**Weapon Types:**
+- 1H: Sword (8), Axe (9), Mace (7), Dagger (5), Wand (6+spell)
+- 2H: Greatsword (15), Battleaxe (16), Staff (8+25spell), Bow (12), Crossbow (14), Spear (11)
+- Shield: +5 armor (off-hand, 1H weapons only)
 
-**Enchantments:**
-- Protection, Fire Protection, Blast Protection
-- Projectile Protection, Feather Falling
-- Thorns, Unbreaking
+**Armor Types & Class Restrictions:**
+- Cloth: All casters
+- Leather: Ranger, Druid, Priest
+- Mail: Fighter, Priest, Ranger
+- Plate: Fighter only
 
-### 5. weapons.lua
-Weapon system with damage stats and combat mechanics:
+**Mechanics:**
+- Dual-wielding (Fighter, Ranger)
+- Shield use (Fighter, Priest with 1H weapon)
+- 2H weapons prevent off-hand
+- Class-appropriate weapon restrictions
 
-**Weapon Materials (5 types):**
-- Wooden (Damage: 4, Durability: 59)
-- Stone (Damage: 5, Durability: 131)
-- Iron (Damage: 6, Durability: 250)
-- Gold (Damage: 4, Durability: 32, high enchantability)
-- Diamond (Damage: 7, Durability: 1561)
+## Usage Examples
 
-**Special Weapons:**
-- **Excalibur** - Legendary sword with Divine Strike
-- **Dragon Slayer** - Bonus damage against dragons
+### Complete RPG Setup
 
-**Features:**
-- Critical hit system (5% base chance, 1.5x damage)
-- Attack speed mechanics
-- Durability tracking
-- Enchantment support
-- Combat simulation
+```lua
+-- Choose class
+setPlayerClass("WIZARD")
 
-**Enchantments:**
-- Sharpness, Smite, Bane of Arthropods
-- Knockback, Fire Aspect, Looting
-- Sweeping Edge, Unbreaking
+-- Equip gear
+equipWeapon(ExampleWeapons.apprenticeWand, EquipmentSlot.MAIN_HAND, PlayerCharacter.class)
+equipArmor(ExampleArmor.robesOfPower, PlayerCharacter.class)
+equipJewelry(ExampleJewelry.necklace1, EquipmentSlot.NECKLACE)
 
-### 6. player_character.lua
-Complete player stats and progression system:
+-- View character
+displayCharacterSheet()
+displayEquipment()
 
-**Stats:**
-- **Health**: 20 HP (regenerates with high hunger)
-- **Hunger**: 20 points (depletes over time)
-- **Stamina**: 100 points (for sprinting)
-- **Movement**: Walk speed, sprint speed, jump height
-- **Combat**: Base damage, attack range
+-- Combat
+enterCombat()
+castAbility("Fireball")  -- Costs mana
 
-**Attributes (10 points each):**
-- **Strength** - Increases melee damage
-- **Defense** - Reduces incoming damage
-- **Agility** - Movement speed and dodge chance
-- **Vitality** - Increases max health
-- **Intelligence** - Magic and enchanting
-- **Luck** - Drops and critical hits
+-- Level up
+addExperience(1500)
+increaseStat("INT", 3)
 
-**Status Effects:**
-- Regeneration, Strength, Speed, Jump Boost
-- Resistance, Fire Resistance, Water Breathing
-- Invisibility, Poison, Weakness
+leaveCombat()  -- Faster regen
+```
 
-**Features:**
-- Level and experience system
-- Attribute point distribution
-- Status effect duration tracking
-- Damage calculation with defense
-- Hunger and health mechanics
-- Player stat display
+### Fighter Dual-Wield
 
-## Using the Plugins
+```lua
+setPlayerClass("FIGHTER")
+equipWeapon(sword1, EquipmentSlot.MAIN_HAND, PlayerCharacter.class)
+equipWeapon(sword2, EquipmentSlot.OFF_HAND, PlayerCharacter.class)
+castAbility("Whirlwind")
+```
 
-### Basic Usage
+### Priest Healer
 
-All plugins are automatically loaded from the `plugins/` directory when CloneMine starts.
+```lua
+setPlayerClass("PRIEST")
+equipWeapon(mace, EquipmentSlot.MAIN_HAND, PlayerCharacter.class)
+equipWeapon(shield, EquipmentSlot.OFF_HAND, PlayerCharacter.class)
+castAbility("Heal")
+castAbility("Mass Heal")
+```
 
-### Plugin API Functions
+## D&D Stats Explained
 
-**Available to all plugins:**
+- **STR** - Melee damage (Fighter)
+- **DEX** - Ranged, AC (Ranger)
+- **CON** - Health (All)
+- **INT** - Wizard spells
+- **WIS** - Priest/Druid spells
+- **CHA** - Sorcerer/Warlock spells
+
+## Additional Plugins
+
+### 3. custom_blocks.lua
+8 new block types: Obsidian, Ores (Gold/Diamond/Emerald), Glass, Brick, Ice, Lava
+
+### 4. items.lua  
+Materials, tools, consumables (legacy - use equipment_system for RPG items)
+
+### 5-7. armor.lua, weapons.lua, player_character.lua
+Legacy plugins - superseded by character_classes.lua and equipment_system.lua
+
+### 8. example.lua
+Basic plugin template
+
+## Plugin API
 
 ```lua
 -- Logging
 log(message)
 
--- Block manipulation
+-- Blocks
 getBlockType(x, y, z)
-setBlockType(x, y, z, blockType)
-```
+setBlockType(x, y, z, type)
 
-### Plugin Hooks
-
-All plugins can implement these callback functions:
-
-```lua
-function onLoad()
-    -- Called once when plugin loads
-    -- Use for initialization
-end
-
-function onUpdate(deltaTime)
-    -- Called every frame
-    -- deltaTime is time since last frame in seconds
-end
-
-function onInput()
-    -- Called when input events occur
-end
-
-function onRender()
-    -- Called during the rendering phase
-end
-```
-
-## Creating Custom Plugins
-
-1. Create a new `.lua` file in the `plugins/` directory
-2. Implement the plugin hooks you need
-3. Use only the safe API functions provided
-4. Restart CloneMine to load your plugin
-
-### Example Custom Plugin
-
-```lua
--- my_custom_plugin.lua
-
-local blockCounter = 0
-
-function onLoad()
-    log("My Custom Plugin loaded!")
-    blockCounter = 0
-end
-
-function onUpdate(deltaTime)
-    -- Update logic here
-end
-
--- Custom functionality
-function placeCustomBlock(x, y, z)
-    setBlockType(x, y, z, 10)  -- Custom block type
-    blockCounter = blockCounter + 1
-    log("Placed block #" .. blockCounter)
-end
+-- Hooks
+function onLoad() end
+function onUpdate(deltaTime) end
+function onInput() end
+function onRender() end
 ```
 
 ## Security
 
-The plugin system is **sandboxed** for security:
+✅ Allowed: math, string, table, log(), block API
+❌ Blocked: file I/O, system commands, code loading, debug, network
 
-### ✅ Allowed
-- Safe Lua standard library functions (math, string, table)
-- Logging via `log()`
-- Block manipulation via API
-- Pure computation and game logic
+## Class Balance
 
-### ❌ Blocked
-- File I/O operations (`io.*`, `dofile`, `loadfile`)
-- System commands (`os.execute`, `os.exit`)
-- Code loading (`load`, `require`, `package.*`)
-- Debug introspection (`debug.*`)
-- Network access
-
-## Plugin Development Tips
-
-1. **Test Frequently**: Restart CloneMine after changes
-2. **Use log()**: Debug with log messages to the console
-3. **Handle Errors**: Lua errors won't crash the game
-4. **Keep It Simple**: Complex plugins may impact performance
-5. **Document Your Code**: Help others understand your plugins
-
-## Example Scenarios
-
-### Equipping Full Diamond Armor
-
-```lua
--- In the Lua console or plugin
-equipArmor(ArmorSlot.HELMET, armorSets["DIAMOND"].helmet)
-equipArmor(ArmorSlot.CHESTPLATE, armorSets["DIAMOND"].chestplate)
-equipArmor(ArmorSlot.LEGGINGS, armorSets["DIAMOND"].leggings)
-equipArmor(ArmorSlot.BOOTS, armorSets["DIAMOND"].boots)
-getTotalProtection()  -- Should return 20
-```
-
-### Creating an Enchanted Weapon
-
-```lua
-local sword = Weapon:new("DIAMOND", WeaponType.SWORD)
-sword:addEnchantment("SHARPNESS", 5)
-sword:addEnchantment("FIRE_ASPECT", 2)
-equipWeapon(sword)
-```
-
-### Leveling Up the Player
-
-```lua
-addExperience(500)  -- Gain XP
-increaseAttribute("strength", 5)  -- Increase strength
-displayPlayerStats()  -- Show all stats
-```
-
-## Contributing
-
-Feel free to create and share your own plugins! The plugin system is designed to be extensible and safe.
+| Class | Primary | Health (Base+/lvl) | Resource | Special |
+|-------|---------|-----|----------|---------|
+| Wizard | INT | 40+6 | High Mana | Pure DPS |
+| Sorcerer | CHA | 45+6 | Highest Mana | Versatile |
+| Priest | WIS | 50+8 | Medium Mana | Healer |
+| Fighter | STR | 70+10 | Medium Energy | Tank/DPS |
+| Ranger | DEX | 60+10 | Medium Focus | DPS+Pet |
+| Warlock | CHA | 50+8 | Medium Soul | DPS+Pet |
+| Druid | WIS | 55+8 | Medium Nature | Hybrid |
 
 ## License
 
-These example plugins are provided as part of CloneMine and are free to use and modify.
+Part of CloneMine - free to use and modify.
