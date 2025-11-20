@@ -1,6 +1,23 @@
-# CloneMine Plugins - D&D-Style RPG System
+# CloneMine Plugins - RPG System Extensions
 
-This directory contains Lua plugins implementing a complete D&D-inspired RPG system.
+**Note:** Core game data has been moved to the `data/` directory for better organization.
+This plugins directory now contains legacy files and examples for extending the core game systems.
+
+## Core Game Data Location
+
+The main RPG system is now in `data/`:
+- `data/classes/` - 9 character classes with modular files (stats, spells, abilities, feats, summoning)
+- `data/spells/` - Separate player and monster spells
+- `data/abilities/` - Separate player and monster abilities  
+- `data/encounters/` - Random encounter system
+- `data/equipment/` - Weapons, armor, jewelry
+- `data/monsters/` - Monster definitions
+
+See `data/README.md` for complete documentation.
+
+## Legacy Plugin Files
+
+This directory contains legacy files from the initial plugin-based design:
 
 ## Core Systems
 
