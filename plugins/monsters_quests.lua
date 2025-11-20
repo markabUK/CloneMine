@@ -1,5 +1,65 @@
 -- Monsters and NPCs Plugin
 -- Defines monsters to fight and quest-giving NPCs
+-- Level Scaling: Like City of Heroes, monsters scale ±5 levels from player
+-- XP rewards scale based on level difference
+
+-- Level Scaling Constants (City of Heroes style)
+local LEVEL_RANGE = 5  -- Monsters can be ±5 levels from player
+local MAX_LEVEL = 20   -- Current level cap
+
+-- XP Scaling based on level difference (like City of Heroes)
+local function calculateXPReward(baseXP, monsterLevel, playerLevel)
+    local levelDiff = monsterLevel - playerLevel
+    
+    if levelDiff > 5 then
+        -- Monster too high, no XP (can't even fight it)
+        return 0
+    elseif levelDiff < -5 then
+        -- Monster too low (gray/trivial), minimal XP
+        return math.floor(baseXP * 0.1)
+    elseif levelDiff >= 3 then
+        -- Higher level (+3 to +5): bonus XP
+        return math.floor(baseXP * (1.0 + 0.2 * levelDiff))
+    elseif levelDiff >= 1 then
+        -- Slightly higher (+1 to +2): normal to good XP
+        return math.floor(baseXP * (1.0 + 0.1 * levelDiff))
+    elseif levelDiff == 0 then
+        -- Same level: full XP
+        return baseXP
+    elseif levelDiff >= -2 then
+        -- Slightly lower (-1 to -2): reduced XP
+        return math.floor(baseXP * (1.0 + 0.1 * levelDiff))  -- 90% or 80%
+    else
+        -- Much lower (-3 to -5): significantly reduced
+        return math.floor(baseXP * (0.5 + 0.1 * (levelDiff + 5)))  -- 50% to 20%
+    end
+end
+
+-- Scale monster to player level (like City of Heroes)
+local function scaleMonsterToPlayer(baseMonster, playerLevel)
+    local scaledMonster = {}
+    for k, v in pairs(baseMonster) do
+        scaledMonster[k] = v
+    end
+    
+    -- Scale stats based on level
+    local levelScale = playerLevel / scaledMonster.level
+    scaledMonster.health = math.floor(scaledMonster.health * levelScale)
+    scaledMonster.damage = math.floor(scaledMonster.damage * levelScale)
+    scaledMonster.armor = math.floor(scaledMonster.armor * levelScale)
+    
+    -- Scale XP based on level difference
+    scaledMonster.xpReward = calculateXPReward(
+        scaledMonster.xpReward,
+        scaledMonster.level,
+        playerLevel
+    )
+    
+    scaledMonster.actualLevel = scaledMonster.level
+    scaledMonster.scaledToPlayer = playerLevel
+    
+    return scaledMonster
+end
 
 -- Monster Types
 local MonsterType = {
@@ -241,7 +301,7 @@ local Monsters = {
     -- Bosses (30+)
     ANCIENT_DRAKE = {
         name = "Ancient Drake",
-        level = 35,
+        level = 18,  -- High-level boss within cap
         type = MonsterType.DRAGON,
         difficulty = Difficulty.BOSS,
         health = 2000,
@@ -274,7 +334,7 @@ local Monsters = {
     
     LICH_KING = {
         name = "The Lich King",
-        level = 40,
+        level = 20,  -- Raid boss at max level
         type = MonsterType.UNDEAD,
         difficulty = Difficulty.RAID_BOSS,
         health = 5000,
@@ -470,12 +530,12 @@ local Quests = {
         questChain = "Burning Crusade"
     },
     
-    -- Epic Boss Quests
+        -- Epic Boss Quests
     DRAKE_CHALLENGE = {
         id = 9,
         name = "Challenge of the Ancient Drake",
         description = "Face the ancient drake in its lair and claim its treasure.",
-        level = 35,
+        level = 18,  -- Updated to match new boss level
         questGiver = "Dragon Hunter",
         difficulty = "Epic",
         objectives = {
@@ -496,7 +556,7 @@ local Quests = {
         id = 10,
         name = "Fall of the Lich King",
         description = "Assemble a raid and defeat the Lich King once and for all.",
-        level = 40,
+        level = 20,  -- Max level raid
         questGiver = "King of Stormwind",
         difficulty = "Legendary",
         requiresRaid = true,
@@ -518,6 +578,8 @@ local Quests = {
 
 function onLoad()
     log("Monsters and Quests Plugin loaded!")
+    log("Level Scaling: City of Heroes style (±" .. LEVEL_RANGE .. " levels)")
+    log("Max Level: " .. MAX_LEVEL)
     
     local monsterCount = 0
     local questCount = 0
@@ -547,25 +609,59 @@ function getMonster(monsterName)
     return Monsters[monsterName]
 end
 
+-- Get monster scaled to player level (City of Heroes style)
+function getScaledMonster(monsterName, playerLevel)
+    local baseMonster = Monsters[monsterName]
+    if not baseMonster then
+        return nil
+    end
+    
+    return scaleMonsterToPlayer(baseMonster, playerLevel)
+end
+
+-- Calculate XP for killing a monster
+function calculateMonsterXP(monsterName, playerLevel)
+    local monster = Monsters[monsterName]
+    if not monster then
+        return 0
+    end
+    
+    return calculateXPReward(monster.xpReward, monster.level, playerLevel)
+end
+
 -- Get quest by ID
 function getQuest(questId)
-    return Quests[questId]
+    for _, quest in pairs(Quests) do
+        if quest.id == questId then
+            return quest
+        end
+    end
+    return nil
 end
 
 -- Get quests available for level
 function getQuestsForLevel(playerLevel)
     local available = {}
-    for questId, quest in pairs(Quests) do
-        if playerLevel >= quest.level then
+    for _, quest in pairs(Quests) do
+        if playerLevel >= quest.level and playerLevel <= quest.level + 3 then
             table.insert(available, quest)
         end
     end
     return available
 end
 
+-- Check if monster is within player's level range
+function isMonsterInRange(monsterLevel, playerLevel)
+    local diff = math.abs(monsterLevel - playerLevel)
+    return diff <= LEVEL_RANGE
+end
+
 -- Export
 _G.Monsters = Monsters
 _G.Quests = Quests
 _G.getMonster = getMonster
+_G.getScaledMonster = getScaledMonster
+_G.calculateMonsterXP = calculateMonsterXP
 _G.getQuest = getQuest
 _G.getQuestsForLevel = getQuestsForLevel
+_G.isMonsterInRange = isMonsterInRange

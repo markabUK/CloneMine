@@ -1,5 +1,7 @@
 -- Shapeshift Forms Plugin
--- Druid shapeshifting system with various animal forms
+-- DRUID-ONLY shapeshifting system with various animal forms
+-- All shapeshifts last until you unshift or are killed
+-- Ghost form when dead removes all shapeshifts
 
 -- Shapeshift Forms
 local ShapeshiftForm = {
@@ -86,7 +88,7 @@ local ShapeshiftForm = {
     -- Mid-Level Forms
     LION = {
         name = "Lion Form",
-        requiredLevel = 15,
+        requiredLevel = 12,
         requiredClass = "DRUID",
         cost = 30,
         duration = 0,
@@ -111,7 +113,7 @@ local ShapeshiftForm = {
     
     DIRE_BEAR = {
         name = "Dire Bear Form",
-        requiredLevel = 18,
+        requiredLevel = 15,
         requiredClass = "DRUID",
         cost = 35,
         duration = 0,
@@ -133,7 +135,7 @@ local ShapeshiftForm = {
     
     MOONKIN = {
         name = "Moonkin Form",
-        requiredLevel = 20,
+        requiredLevel = 16,
         requiredClass = "DRUID",
         cost = 40,
         duration = 0,
@@ -161,7 +163,7 @@ local ShapeshiftForm = {
     -- High-Level Forms
     WYVERN = {
         name = "Wyvern Form",
-        requiredLevel = 25,
+        requiredLevel = 18,
         requiredClass = "DRUID",
         cost = 50,
         duration = 0,
@@ -184,7 +186,7 @@ local ShapeshiftForm = {
     
     TREANT = {
         name = "Tree of Life",
-        requiredLevel = 28,
+        requiredLevel = 19,
         requiredClass = "DRUID",
         cost = 60,
         duration = 0,
@@ -210,15 +212,14 @@ local ShapeshiftForm = {
         healingBonus = 0.3
     },
     
-    -- Epic Forms
+    -- Epic Dragon Forms (DRUID EXCLUSIVE)
     DRAGON_WHELP = {
         name = "Dragon Whelp",
-        requiredLevel = 30,
-        requiredClass = "DRUID",
+        requiredLevel = 14,
+        requiredClass = "DRUID",  -- ONLY DRUIDS can become dragons
         cost = 70,
-        duration = 120,  -- 2 minutes
-        cooldown = 600,  -- 10 minute cooldown
-        description = "Transform into a young dragon",
+        duration = 0,  -- Lasts until unshifted or killed
+        description = "Transform into a young dragon (DRUID ONLY)",
         statsMultiplier = {
             STR = 2.0,
             DEX = 1.7,
@@ -246,12 +247,11 @@ local ShapeshiftForm = {
     
     DRAKE = {
         name = "Drake Form",
-        requiredLevel = 35,
-        requiredClass = "DRUID",
+        requiredLevel = 17,
+        requiredClass = "DRUID",  -- ONLY DRUIDS can become dragons
         cost = 80,
-        duration = 180,  -- 3 minutes
-        cooldown = 900,  -- 15 minute cooldown
-        description = "Transform into a powerful drake",
+        duration = 0,  -- Lasts until unshifted or killed
+        description = "Transform into a powerful drake (DRUID ONLY)",
         statsMultiplier = {
             STR = 2.3,
             DEX = 1.8,
@@ -285,12 +285,11 @@ local ShapeshiftForm = {
     
     DRAGON = {
         name = "Dragon Form",
-        requiredLevel = 40,
-        requiredClass = "DRUID",
+        requiredLevel = 20,  -- Ultimate form at max level
+        requiredClass = "DRUID",  -- ONLY DRUIDS can become dragons
         cost = 100,
-        duration = 300,  -- 5 minutes
-        cooldown = 1800,  -- 30 minute cooldown
-        description = "Transform into a mighty dragon - ultimate form",
+        duration = 0,  -- Lasts until unshifted or killed
+        description = "Transform into a mighty dragon - ultimate form (DRUID ONLY)",
         statsMultiplier = {
             STR = 2.5,
             DEX = 2.0,
