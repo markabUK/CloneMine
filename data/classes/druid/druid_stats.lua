@@ -17,5 +17,19 @@ return {
     canUseShield = false,
     startingStats = {STR = 10, DEX = 10, CON = 12, INT = 10, WIS = 16, CHA = 12},
     statGrowth = {STR = 1, DEX = 1, CON = 1, INT = 1, WIS = 2, CHA = 0.5},
-    canShapeshift = true
+    canShapeshift = true,
+    shapeshiftFile = "druid_shapeshift",  -- References druid_shapeshift.lua in same directory
+    
+    -- Damage scaling overrides (optional, can override stat_damage_system.lua)
+    damageScalingOverrides = {
+        -- Can override damage dealt scaling
+        damageDealt = {
+            WIS = {spellDamage = 0.045},  -- Override to 4.5% instead of default
+            STR = {shapeshiftDamage = 0.025}  -- Override shapeshift damage
+        },
+        -- Can override damage taken scaling
+        damageTaken = {
+            CON = {physicalReduction = 0.065}  -- Override to 6.5% in bear form
+        }
+    }
 }

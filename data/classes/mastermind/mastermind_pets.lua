@@ -19,7 +19,15 @@ return {
                 {name = "Punch", damage = 12, cooldown = 3},
                 {name = "Flurry", damage = 8, hits = 3, cooldown = 15}
             },
-            specialization = "DPS"
+            specialization = "DPS",
+            -- Pet-specific damage scaling override
+            damageScalingOverride = {
+                baseDamageMultiplier = 0.5,  -- 50% of player damage
+                ownerStatScaling = {
+                    CHA = 0.03  -- +3% damage per owner's CHA
+                },
+                levelScaling = 0.05  -- +5% per pet level
+            }
         },
         LIEUTENANT = {
             name = "Elite Enforcer",
@@ -39,7 +47,15 @@ return {
                 {name = "Snipe", damage = 20, cooldown = 8},
                 {name = "Suppress", description = "-25% target damage for 8s", cooldown = 20}
             },
-            specialization = "DPS"
+            specialization = "DPS",
+            -- Pet-specific damage scaling override
+            damageScalingOverride = {
+                baseDamageMultiplier = 0.7,  -- 70% of player damage
+                ownerStatScaling = {
+                    CHA = 0.05  -- +5% damage per owner's CHA
+                },
+                levelScaling = 0.07  -- +7% per pet level
+            }
         },
         BOSS_PET = {
             name = "Champion",
@@ -60,7 +76,18 @@ return {
                 {name = "Intimidate", description = "AOE fear 6s", cooldown = 45},
                 {name = "Rally", description = "Buff nearby pets +20% damage", cooldown = 60}
             },
-            specialization = "TANK/DPS"
+            specialization = "TANK/DPS",
+            -- Boss Pet gets SUPERIOR scaling (MUCH stronger than other pets)
+            damageScalingOverride = {
+                baseDamageMultiplier = 1.2,  -- 120% of player damage (higher than player!)
+                ownerStatScaling = {
+                    CHA = 0.08,  -- +8% damage per owner's CHA (HUGE)
+                    STR = 0.02   -- Also benefits from owner's STR
+                },
+                levelScaling = 0.10,  -- +10% per pet level
+                critChanceBonus = 0.15,  -- +15% crit chance
+                critDamageMultiplier = 1.5  -- Boss pet crits hit 50% harder
+            }
         }
     },
     petScaling = {healthScaling = 0.7, damageScaling = 0.6, armorScaling = 0.5},

@@ -84,7 +84,8 @@ return {
                 physicalReduction = 0.05,   -- +0.05% physical damage reduction per CON
                 maxHealthIncrease = 0.02,   -- +2% max health per CON
                 bleedResist = 0.3,          -- +0.3% bleed resistance per CON
-                stunResist = 0.1            -- +0.1% stun resistance per CON
+                stunResist = 0.1,           -- +0.1% stun resistance per CON
+                maxReductionPercent = 20    -- CAPPED at 20% total reduction from CON
             },
             STR = {
                 physicalReduction = 0.02,   -- +0.02% physical damage reduction per STR
@@ -158,7 +159,13 @@ return {
             },
             damageTaken = {
                 INT = {spellReduction = 0.04},
-                CON = {physicalReduction = 0.05}
+                CON = {physicalReduction = 0.05},
+                DEX = {dodgeChance = 0.05}      -- Light dodge capability
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = false,
+                canDodge = true
             }
         },
         
@@ -170,7 +177,13 @@ return {
             },
             damageTaken = {
                 CHA = {allReduction = 0.02},
-                CON = {physicalReduction = 0.05}
+                CON = {physicalReduction = 0.05},
+                DEX = {dodgeChance = 0.06}
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = false,
+                canDodge = true
             }
         },
         
@@ -182,7 +195,13 @@ return {
             },
             damageTaken = {
                 WIS = {spellReduction = 0.05, healingReceived = 0.03},
-                CON = {physicalReduction = 0.05}
+                CON = {physicalReduction = 0.05},
+                STR = {blockChance = 0.08}  -- Can block with shield
+            },
+            defensiveMechanics = {
+                canBlock = true,        -- Requires shield
+                canParry = false,
+                canDodge = false
             }
         },
         
@@ -193,9 +212,14 @@ return {
                 DEX = {physicalDamage = 0.01}
             },
             damageTaken = {
-                STR = {physicalReduction = 0.03},
+                STR = {physicalReduction = 0.03, blockChance = 0.1},  -- +0.1% block with shield
                 CON = {physicalReduction = 0.07},    -- Fighters benefit heavily from CON
-                DEX = {dodgeChance = 0.08}
+                DEX = {dodgeChance = 0.08, parryChance = 0.05}  -- Dodge and parry
+            },
+            defensiveMechanics = {
+                canBlock = true,        -- Requires shield
+                canParry = true,        -- Can parry melee attacks
+                canDodge = true         -- Can dodge attacks
             }
         },
         
@@ -206,8 +230,13 @@ return {
                 STR = {physicalDamage = 0.01}
             },
             damageTaken = {
-                DEX = {dodgeChance = 0.12},          -- Rangers dodge better
+                DEX = {dodgeChance = 0.12, parryChance = 0.08},  -- Rangers dodge and parry
                 CON = {physicalReduction = 0.05}
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = true,
+                canDodge = true
             }
         },
         
@@ -219,7 +248,13 @@ return {
             },
             damageTaken = {
                 CHA = {allReduction = 0.015},
-                CON = {physicalReduction = 0.05}
+                CON = {physicalReduction = 0.05},
+                DEX = {dodgeChance = 0.05}
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = false,
+                canDodge = true
             }
         },
         
@@ -232,7 +267,13 @@ return {
             damageTaken = {
                 WIS = {spellReduction = 0.04},
                 CON = {physicalReduction = 0.06},     -- Tankier in forms
-                STR = {physicalReduction = 0.01}      -- When shapeshifted
+                STR = {physicalReduction = 0.01},     -- When shapeshifted
+                DEX = {dodgeChance = 0.08}            -- Agile in cat form
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = false,
+                canDodge = true     -- Especially in cat/travel forms
             }
         },
         
@@ -245,9 +286,15 @@ return {
             damageTaken = {
                 CHA = {allReduction = 0.02},         -- Personal protection
                 CON = {physicalReduction = 0.05},
+                DEX = {dodgeChance = 0.06},
                 petDamageReduction = {               -- Pets take damage for master
                     CHA = 0.01                       -- +1% pet tanking per CHA
                 }
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = false,
+                canDodge = true
             }
         },
         
@@ -260,7 +307,13 @@ return {
             damageTaken = {
                 INT = {spellReduction = 0.04},
                 CON = {physicalReduction = 0.05},
+                DEX = {dodgeChance = 0.05},
                 lifeSteal = {INT = 0.05}             -- +0.05% lifesteal per INT
+            },
+            defensiveMechanics = {
+                canBlock = false,
+                canParry = false,
+                canDodge = true
             }
         },
         
@@ -272,9 +325,118 @@ return {
                 WIS = {healingPower = 0.04, holyDamage = 0.015}
             },
             damageTaken = {
-                STR = {physicalReduction = 0.025},
+                STR = {physicalReduction = 0.025, blockChance = 0.12},  -- Excellent blocker with shield
                 CON = {physicalReduction = 0.06},
                 WIS = {spellReduction = 0.03, healingReceived = 0.025}
+            },
+            defensiveMechanics = {
+                canBlock = true,        -- Requires shield, best blocker
+                canParry = true,
+                canDodge = false
+            }
+        }
+    },
+    
+    -- ========================================
+    -- MONSTER SCALING
+    -- ========================================
+    monsterScaling = {
+        -- Base monster stats
+        baseStats = {
+            health = 100,
+            damage = 10,
+            armor = 5,
+            magicResist = 5
+        },
+        
+        -- Level-based scaling
+        levelScaling = {
+            health = 1.15,          -- +15% HP per level
+            damage = 1.10,          -- +10% damage per level
+            armor = 1.08,           -- +8% armor per level
+            magicResist = 1.08      -- +8% magic resist per level
+        },
+        
+        -- Difficulty multipliers
+        difficultyScaling = {
+            Normal = {
+                healthMultiplier = 1.0,
+                damageMultiplier = 1.0,
+                xpMultiplier = 1.0
+            },
+            Hard = {
+                healthMultiplier = 1.5,
+                damageMultiplier = 1.3,
+                xpMultiplier = 1.5
+            },
+            Elite = {
+                healthMultiplier = 2.5,
+                damageMultiplier = 1.6,
+                xpMultiplier = 3.0
+            },
+            Boss = {
+                healthMultiplier = 5.0,
+                damageMultiplier = 2.0,
+                xpMultiplier = 10.0
+            },
+            RaidBoss = {
+                healthMultiplier = 15.0,
+                damageMultiplier = 2.5,
+                xpMultiplier = 50.0
+            }
+        },
+        
+        -- Monster type scaling
+        monsterTypeScaling = {
+            Beast = {
+                physicalDamageMultiplier = 1.2,
+                armor = 1.1
+            },
+            Undead = {
+                healthMultiplier = 0.8,
+                damageMultiplier = 1.1,
+                physicalResist = 0.3,  -- 30% physical resist
+                holyVulnerability = 1.5  -- 50% more damage from holy
+            },
+            Demon = {
+                spellDamageMultiplier = 1.3,
+                magicResist = 1.2,
+                holyVulnerability = 1.3
+            },
+            Elemental = {
+                spellDamageMultiplier = 1.5,
+                physicalResist = 0.5,  -- 50% physical resist
+                elementalImmunity = true
+            },
+            Dragon = {
+                healthMultiplier = 2.0,
+                damageMultiplier = 1.5,
+                armor = 1.5,
+                magicResist = 1.5,
+                breathWeapon = true
+            },
+            Humanoid = {
+                healthMultiplier = 1.0,
+                damageMultiplier = 1.0,
+                canUseAbilities = true
+            }
+        },
+        
+        -- Individual monster overrides
+        monsterOverrides = {
+            -- Example: Lich King has custom scaling
+            LICH_KING = {
+                healthMultiplier = 20.0,
+                damageMultiplier = 3.0,
+                spellPower = 500,
+                armor = 200,
+                magicResist = 150
+            },
+            ANCIENT_DRAKE = {
+                healthMultiplier = 10.0,
+                damageMultiplier = 2.5,
+                fireResist = 0.8,  -- 80% fire resist
+                frostVulnerability = 1.5
             }
         }
     },
