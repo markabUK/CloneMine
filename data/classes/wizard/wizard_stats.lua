@@ -46,5 +46,42 @@ return {
         INT = 2,  -- Highest growth
         WIS = 1,
         CHA = 0.5
+    },
+    
+    -- Defensive mechanics this class can use
+    defensiveMechanics = {
+        canDodge = true,
+        canParry = false,
+        canBlock = false
+    },
+    
+    -- Class-specific damage scaling overrides
+    damageScaling = {
+        -- Damage dealt scaling
+        damageDealt = {
+            INT = {
+                spellDamage = 0.05,          -- +5% spell damage per INT (higher than default 4%)
+                spellPenetration = 0.8,      -- +0.8 spell penetration per INT
+                dotDamage = 0.03             -- +3% DOT damage per INT
+            },
+            WIS = {
+                spellDamage = 0.02,          -- +2% spell damage per WIS
+                manaCost = 0.4               -- +0.4% mana cost reduction per WIS
+            }
+        },
+        -- Damage taken reduction
+        damageTaken = {
+            CON = {
+                physicalReduction = 0.04     -- +4% physical reduction per CON (slightly lower than default)
+            },
+            INT = {
+                magicReduction = 0.08        -- +8% magic damage reduction per INT (wizards resist magic well)
+            }
+        },
+        -- Level-based scaling
+        levelScaling = {
+            spellDamagePerLevel = 0.06,      -- +6% spell damage per level
+            healthPerLevel = 0.04            -- +4% health per level
+        }
     }
 }

@@ -60,5 +60,23 @@ return {
     
     -- Level cap
     maxLevel = 20,
-    expandedMaxLevel = 120  -- Future expansion
+    expandedMaxLevel = 120,  -- Future expansion
+    
+    -- Defensive mechanics (references data/scaling/stat_damage_system.lua)
+    defensiveMechanics = {
+        canDodge = true,
+        canParry = false,
+        canBlock = false
+    },
+    
+    -- Damage scaling overrides (optional - overrides defaults in data/scaling/stat_damage_system.lua)
+    damageScalingOverrides = {
+        damageDealt = {
+            INT = {spellDamage = 0.011},  -- Slightly higher INT scaling for necromancer
+            CHA = {petDamage = 0.009}     -- Undead respond to force of will (CHA)
+        },
+        damageTaken = {
+            CON = {physicalReduction = 0.008}
+        }
+    }
 }

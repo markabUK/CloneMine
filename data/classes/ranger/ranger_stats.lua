@@ -43,5 +43,24 @@ return {
     
     -- Pet system
     hasPets = true,
-    maxPets = 1
+    maxPets = 1,
+    
+    -- Defensive mechanics (references data/scaling/stat_damage_system.lua)
+    defensiveMechanics = {
+        canDodge = true,
+        canParry = true,
+        canBlock = false
+    },
+    
+    -- Damage scaling overrides (optional - overrides defaults in data/scaling/stat_damage_system.lua)
+    damageScalingOverrides = {
+        damageDealt = {
+            DEX = {physicalDamage = 0.012, critChance = 0.006},  -- Enhanced DEX scaling for ranger
+            STR = {physicalDamage = 0.008}  -- Moderate STR scaling
+        },
+        damageTaken = {
+            CON = {physicalReduction = 0.008},
+            DEX = {dodgeChance = 0.006}  -- Enhanced dodge for rangers
+        }
+    }
 }
