@@ -227,6 +227,47 @@ local CharacterClass = {
             {level = 7, name = "Cat Form", cost = 20, dps = true, duration = 60},
             {level = 10, name = "Starfall", cost = 50, damage = 60, aoe = true, duration = 10}
         }
+    },
+    
+    MASTERMIND = {
+        name = "Mastermind",
+        description = "Pet-focused controller and support, inspired by City of Villains",
+        primaryStat = Stats.CHARISMA,
+        resourceType = "Control",
+        baseResource = 100,
+        resourcePerLevel = 12,
+        hitDieSize = 6,
+        baseHealth = 45,
+        healthPerLevel = 6,
+        
+        allowedWeapons = {"wand", "staff", "dagger"},
+        allowedArmor = {"cloth", "leather"},
+        canDualWield = false,
+        canUseShield = false,
+        hasPets = true,
+        maxPets = 3,  -- Can control multiple pets!
+        
+        startingStats = {
+            STR = 8, DEX = 10, CON = 10,
+            INT = 12, WIS = 10, CHA = 16
+        },
+        
+        abilities = {
+            {level = 1, name = "Summon Minion", cost = 20, summonPet = "minion"},
+            {level = 1, name = "Soothe", cost = 10, healing = 15, hot = true},
+            {level = 3, name = "Fortify", cost = 20, buff = "defense", duration = 60},
+            {level = 5, name = "Rally", cost = 30, healing = 25, aoe = true, buff = "speed"},
+            {level = 7, name = "Empower Pets", cost = 25, petDamageBonus = 2.0, duration = 15},
+            {level = 10, name = "Summon Lieutenant", cost = 40, summonPet = "lieutenant"},
+            {level = 15, name = "Mass Fortification", cost = 50, buff = "allStats", aoe = true},
+            {level = 20, name = "Summon Boss Pet", cost = 60, summonPet = "boss"}
+        },
+        
+        petTypes = {
+            minion = {health = 50, damage = 10, ability = "Scratch"},
+            lieutenant = {health = 100, damage = 20, ability = "Power Strike"},
+            boss = {health = 200, damage = 35, ability = "Devastate"}
+        }
     }
 }
 
