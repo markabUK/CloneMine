@@ -1,196 +1,242 @@
-# CloneMine Plugins - RPG System Extensions
+# CloneMine Plugin System
 
-**Note:** Core game data has been moved to the `data/` directory for better organization.
-This plugins directory now contains legacy files and examples for extending the core game systems.
+This directory contains **extension plugins** that demonstrate how to add custom content to the core game.
 
-## Core Game Data Location
+## Important: Core vs Plugin Content
 
-The main RPG system is now in `data/`:
-- `data/classes/` - 9 character classes with modular files (stats, spells, abilities, feats, summoning)
-- `data/spells/` - Separate player and monster spells
-- `data/abilities/` - Separate player and monster abilities  
-- `data/encounters/` - Random encounter system
-- `data/equipment/` - Weapons, armor, jewelry
-- `data/monsters/` - Monster definitions
+### Core Game Data (`data/` directory)
+The main game content is located in the `data/` directory:
+- `data/classes/` - 9 character classes (Wizard, Sorcerer, Priest, Fighter, Ranger, Warlock, Druid, Mastermind, Necromancer)
+- `data/spells/` - Player and monster spells
+- `data/abilities/` - Player and monster abilities
+- `data/equipment/` - Weapons, armor, jewelry systems
+- `data/items/` - Core items and consumables
+- `data/monsters/` - Monster definitions and quests
+- `data/encounters/` - Random encounter tables
 
-See `data/README.md` for complete documentation.
+See `data/README.md` for complete core game documentation.
 
-## Legacy Plugin Files
+### Plugin Extensions (`plugins/` directory)
+This directory contains **only extension plugins** that add custom content:
+- New classes, spells, or abilities
+- Custom monsters and bosses
+- New items, weapons, and armor
+- Custom blocks and world features
+- Modifications to existing systems
 
-This directory contains legacy files from the initial plugin-based design:
+---
 
-## Core Systems
+## Example Extension Plugins
 
-### 1. character_classes.lua
-**D&D-Style Character Class System**
+### 1. **example_class_extension.lua**
+Shows how to extend existing classes with:
+- Custom spells (e.g., "Arcane Meteor" for Wizard)
+- New passive abilities (e.g., "Soul Reaper" for Necromancer)
+- Additional shapeshift forms (e.g., "Phoenix" for Druid)
+- Equipment set bonuses (e.g., "Berserker's Rage" for Fighter)
 
-Implements 7 playable classes with unique mechanics:
-
-**Classes:**
-- **Wizard** - INT-based mana caster
-  - Weapons: Staff, Wand, Dagger | Armor: Cloth
-  - Abilities: Magic Missile, Fireball, Ice Storm, Lightning Bolt, Meteor
-
-- **Sorcerer** - CHA-based mana caster  
-  - Weapons: Staff, Wand, Dagger | Armor: Cloth
-  - Abilities: Chaos Bolt, Wild Magic Surge, Arcane Barrage, Time Stop, Wish
-
-- **Priest** - WIS-based mana healer
-  - Weapons: Mace, Staff, Wand | Armor: Cloth, Leather, Mail | Shield: Yes
-  - Abilities: Heal, Holy Smite, Divine Shield, Mass Heal, Resurrection
-
-- **Fighter** - STR-based energy warrior
-  - Weapons: All | Armor: All | Dual-Wield: Yes | Shield: Yes
-  - Abilities: Power Strike, Whirlwind, Execute, Battle Cry, Bladestorm
-
-- **Ranger** - DEX-based focus user with pet
-  - Weapons: Bow, Crossbow, Sword, Dagger, Spear | Armor: Cloth, Leather, Mail | Dual-Wield: Yes
-  - Abilities: Aimed Shot, Call Pet, Multi-Shot, Trap, Camouflage, Barrage
-
-- **Warlock** - CHA-based soul energy with pet
-  - Weapons: Staff, Wand, Dagger | Armor: Cloth, Leather
-  - Abilities: Shadow Bolt, Summon Demon, Curse of Weakness, Drain Life, Fear, Soul Siphon
-
-- **Druid** - WIS-based nature power shapeshifter
-  - Weapons: Staff, Dagger, Mace | Armor: Cloth, Leather
-  - Abilities: Wrath, Bear Form, Healing Touch, Moonfire, Cat Form, Starfall
-
-**Features:**
-- D&D stats: STR, DEX, CON, INT, WIS, CHA
-- Resources regen faster out of combat (10/s) vs in combat (2/s)
-- Level progression with XP system
-- 3 stat points per level
-- Abilities unlock at specific levels
-
-### 2. equipment_system.lua
-**Complete Equipment System**
-
-**11 Equipment Slots:**
-- Weapons: Main Hand, Off Hand
-- Armor: Helmet, Shoulder, Chest, Belt, Bracer, Gloves, Legs, Boots
-- Jewelry: Necklace, Ring 1, Ring 2
-
-**Weapon Types:**
-- 1H: Sword (8), Axe (9), Mace (7), Dagger (5), Wand (6+spell)
-- 2H: Greatsword (15), Battleaxe (16), Staff (8+25spell), Bow (12), Crossbow (14), Spear (11)
-- Shield: +5 armor (off-hand, 1H weapons only)
-
-**Armor Types & Class Restrictions:**
-- Cloth: All casters
-- Leather: Ranger, Druid, Priest
-- Mail: Fighter, Priest, Ranger
-- Plate: Fighter only
-
-**Mechanics:**
-- Dual-wielding (Fighter, Ranger)
-- Shield use (Fighter, Priest with 1H weapon)
-- 2H weapons prevent off-hand
-- Class-appropriate weapon restrictions
-
-## Usage Examples
-
-### Complete RPG Setup
-
+**Key Patterns:**
 ```lua
--- Choose class
-setPlayerClass("WIZARD")
-
--- Equip gear
-equipWeapon(ExampleWeapons.apprenticeWand, EquipmentSlot.MAIN_HAND, PlayerCharacter.class)
-equipArmor(ExampleArmor.robesOfPower, PlayerCharacter.class)
-equipJewelry(ExampleJewelry.necklace1, EquipmentSlot.NECKLACE)
-
--- View character
-displayCharacterSheet()
-displayEquipment()
-
--- Combat
-enterCombat()
-castAbility("Fireball")  -- Costs mana
-
--- Level up
-addExperience(1500)
-increaseStat("INT", 3)
-
-leaveCombat()  -- Faster regen
+-- Add a custom spell to an existing class
+function extendWizardClass()
+    local customSpell = {
+        name = "Arcane Meteor",
+        school = "Arcane",
+        level = 15,
+        manaCost = 80,
+        damage = 200,
+        aoeRadius = 10
+    }
+    -- Register with game
+end
 ```
 
-### Fighter Dual-Wield
+### 2. **example_item_extension.lua**
+Demonstrates adding:
+- Custom consumables (Mega Potions, Stat Food, Elixirs)
+- Legendary weapons (Frostmourne, Staff of Dominance)
+- Epic armor sets (Shadow Assassin, Archmage)
+- Legendary jewelry (The One Ring, Phoenix Amulet)
 
+**Key Patterns:**
 ```lua
-setPlayerClass("FIGHTER")
-equipWeapon(sword1, EquipmentSlot.MAIN_HAND, PlayerCharacter.class)
-equipWeapon(sword2, EquipmentSlot.OFF_HAND, PlayerCharacter.class)
-castAbility("Whirlwind")
+-- Add a custom legendary weapon
+function addCustomWeapons()
+    local weapon = {
+        id = "FROSTMOURNE",
+        name = "Frostmourne",
+        type = "2H_SWORD",
+        damage = 30,
+        stats = {STR = 50, INT = 30},
+        specialAbilities = {"Soul Reaper", "Frozen Soul"},
+        rarity = "Legendary",
+        restrictedTo = {"FIGHTER", "NECROMANCER"}
+    }
+end
 ```
 
-### Priest Healer
+### 3. **example_monster_extension.lua**
+Shows how to add:
+- Custom regular monsters (Frost Giant, Shadow Stalker, Corrupted Treant)
+- Epic raid bosses (Tiamat/Dragon Queen, Xal'atath/Void Lord)
+- World events (Demonic Invasion)
+- Multi-phase boss encounters
 
+**Key Patterns:**
 ```lua
-setPlayerClass("PRIEST")
-equipWeapon(mace, EquipmentSlot.MAIN_HAND, PlayerCharacter.class)
-equipWeapon(shield, EquipmentSlot.OFF_HAND, PlayerCharacter.class)
-castAbility("Heal")
-castAbility("Mass Heal")
+-- Add a custom boss with phases
+function addCustomBosses()
+    local boss = {
+        id = "DRAGON_QUEEN",
+        name = "Tiamat, Dragon Queen",
+        level = 20,
+        health = 100000,
+        phases = {
+            {threshold = 100, abilities = {...}},
+            {threshold = 75, abilities = {...}},
+            {threshold = 50, abilities = {...}},
+            {threshold = 25, abilities = {...}}
+        },
+        requiresGroup = true,
+        minPlayers = 10
+    }
+end
 ```
 
-## D&D Stats Explained
+### 4. **custom_blocks.lua**
+Example of adding custom block types:
+- Obsidian, Glass, Brick
+- Ore blocks (Gold, Diamond, Emerald)
+- Environmental blocks (Ice, Lava)
+- Block properties (hardness, transparency, luminance)
 
-- **STR** - Melee damage (Fighter)
-- **DEX** - Ranged, AC (Ranger)
-- **CON** - Health (All)
-- **INT** - Wizard spells
-- **WIS** - Priest/Druid spells
-- **CHA** - Sorcerer/Warlock spells
+### 5. **example.lua**
+Basic plugin template showing:
+- Plugin initialization
+- Logging system
+- Basic API usage
 
-## Additional Plugins
+---
 
-### 3. custom_blocks.lua
-8 new block types: Obsidian, Ores (Gold/Diamond/Emerald), Glass, Brick, Ice, Lava
+## Creating Your Own Plugin
 
-### 4. items.lua  
-Materials, tools, consumables (legacy - use equipment_system for RPG items)
-
-### 5-7. armor.lua, weapons.lua, player_character.lua
-Legacy plugins - superseded by character_classes.lua and equipment_system.lua
-
-### 8. example.lua
-Basic plugin template
-
-## Plugin API
+### Basic Plugin Structure
 
 ```lua
--- Logging
-log(message)
+-- My Custom Plugin
 
--- Blocks
+function onLoad()
+    log("Loading My Custom Plugin")
+    
+    -- Initialize your custom content here
+    addCustomContent()
+    
+    log("My Custom Plugin loaded successfully!")
+end
+
+function addCustomContent()
+    -- Your custom items, spells, monsters, etc.
+end
+
+-- Call onLoad when plugin is loaded
+onLoad()
+```
+
+### Plugin API Reference
+
+#### Logging
+```lua
+log("Message")  -- Output to game log
+```
+
+#### Game State Access
+```lua
+-- Access player data
+getPlayerLevel()
+getPlayerClass()
+getPlayerStats()
+
+-- Access world data
 getBlockType(x, y, z)
-setBlockType(x, y, z, type)
-
--- Hooks
-function onLoad() end
-function onUpdate(deltaTime) end
-function onInput() end
-function onRender() end
+setBlockType(x, y, z, blockType)
 ```
 
-## Security
+#### Registering Content
+```lua
+-- Register custom content with the game
+registerSpell(spellData)
+registerAbility(abilityData)
+registerMonster(monsterData)
+registerItem(itemData)
+```
 
-✅ Allowed: math, string, table, log(), block API
-❌ Blocked: file I/O, system commands, code loading, debug, network
+---
 
-## Class Balance
+## Plugin Guidelines
 
-| Class | Primary | Health (Base+/lvl) | Resource | Special |
-|-------|---------|-----|----------|---------|
-| Wizard | INT | 40+6 | High Mana | Pure DPS |
-| Sorcerer | CHA | 45+6 | Highest Mana | Versatile |
-| Priest | WIS | 50+8 | Medium Mana | Healer |
-| Fighter | STR | 70+10 | Medium Energy | Tank/DPS |
-| Ranger | DEX | 60+10 | Medium Focus | DPS+Pet |
-| Warlock | CHA | 50+8 | Medium Soul | DPS+Pet |
-| Druid | WIS | 55+8 | Medium Nature | Hybrid |
+### DO:
+✅ Add new content that extends the game
+✅ Create unique items, spells, and abilities
+✅ Add custom monsters and bosses
+✅ Modify drop tables and loot
+✅ Create new world features and blocks
+✅ Add cosmetic features and effects
 
-## License
+### DON'T:
+❌ Modify core class definitions (extend instead)
+❌ Remove or replace core game content
+❌ Break game balance without consideration
+❌ Access unsafe system functions (sandboxed)
+❌ Override security restrictions
 
-Part of CloneMine - free to use and modify.
+---
+
+## Plugin Loading
+
+Plugins are loaded automatically from this directory at game startup. The loading order is:
+1. Core game data (`data/`)
+2. Plugin extensions (`plugins/`)
+
+Plugins can reference and extend core content but should not replace it.
+
+---
+
+## Advanced Topics
+
+### Extending Classes
+Plugins can add new spells, abilities, and features to existing classes without modifying core class files.
+
+### Custom Equipment Sets
+Create set bonuses that activate when multiple pieces are equipped together.
+
+### World Events
+Add timed events that spawn special monsters or create unique encounters.
+
+### Boss Mechanics
+Implement complex multi-phase boss encounters with special abilities and loot tables.
+
+### Mod Compatibility
+Well-designed plugins will be compatible with other plugins that don't overlap in functionality.
+
+---
+
+## Support and Resources
+
+- Core game documentation: `data/README.md`
+- Building instructions: `BUILDING.md`
+- Security information: `SECURITY.md`
+- Quick start guide: `QUICKSTART.md`
+
+---
+
+## Examples Summary
+
+| Plugin File | Purpose | Key Features |
+|------------|---------|--------------|
+| `example_class_extension.lua` | Extend classes | Custom spells, abilities, forms, sets |
+| `example_item_extension.lua` | Add items | Weapons, armor, consumables, jewelry |
+| `example_monster_extension.lua` | Add monsters | Regular mobs, raid bosses, world events |
+| `custom_blocks.lua` | Add blocks | New block types and properties |
+| `example.lua` | Basic template | Simple plugin structure |
+
+Start with these examples and modify them to create your own custom content!
