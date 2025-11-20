@@ -35,7 +35,8 @@ function ClassLoader:loadClass(classDir)
         spells = {},
         abilities = {},
         feats = {},
-        summoning = nil
+        summoning = nil,
+        pets = nil
     }
     
     -- Load stats file (required)
@@ -74,6 +75,13 @@ function ClassLoader:loadClass(classDir)
     success, summoning = pcall(dofile, summoningPath)
     if success and summoning then
         classData.summoning = summoning
+    end
+    
+    -- Load pets file (optional, only for pet classes - separate from summoning)
+    local petsPath = classDir .. "/" .. className:lower() .. "_pets.lua"
+    success, pets = pcall(dofile, petsPath)
+    if success and pets then
+        classData.pets = pets
     end
     
     -- Register the class
@@ -152,6 +160,27 @@ end
 function ClassLoader:getMaxSummons(className)
     local summoning = self:getClassSummoning(className)
     return summoning and summoning.maxSummons or 0
+end
+
+-- Get class pets data
+function ClassLoader:getClassPets(className)
+    local class = self:getClass(className)
+    return class and class.pets or nil
+end
+
+-- Get feat progression info (D&D style - every 2 levels)
+function ClassLoader:getFeatProgression()
+    return {
+        levels = {2, 4, 6, 8, 10, 12, 14, 16, 18, 20},
+        description = "Feats are earned every 2 levels, similar to D&D 3.5/Pathfinder progression",
+        totalFeats = 10,  -- Total at level 20
+        perLevel = function(level)
+            if level % 2 == 0 and level <= 20 then
+                return 1
+            end
+            return 0
+        end
+    }
 end
 
 -- Add a custom spell to a class (for plugins)

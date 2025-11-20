@@ -1,200 +1,271 @@
-# Core Game Data
+# CloneMine Core Game Data
 
-This directory contains the core game data for CloneMine's RPG system. Unlike the `plugins/` directory, this data is part of the base game and loaded automatically at startup.
+This directory contains the core game data for CloneMine, organized in a fully modular structure.
 
 ## Directory Structure
 
 ```
 data/
-├── classes/              # Character class definitions
-│   ├── wizard/          # Each class has its own directory
+├── classes/              # All 9 character classes (fully modularized)
+│   ├── wizard/          # Standard 4-file structure
 │   │   ├── wizard_stats.lua
 │   │   ├── wizard_spells.lua
 │   │   ├── wizard_abilities.lua
-│   │   ├── wizard_feats.lua
-│   │   └── wizard_summoning.lua (if applicable)
-│   ├── necromancer/
-│   ├── ...
-│   └── class_registry.lua
-├── spells/              # Spell definitions
+│   │   └── wizard_feats.lua
+│   ├── sorcerer/
+│   ├── priest/
+│   ├── fighter/
+│   ├── ranger/          # Pet class - 6 files
+│   │   ├── ranger_stats.lua
+│   │   ├── ranger_spells.lua
+│   │   ├── ranger_abilities.lua
+│   │   ├── ranger_feats.lua
+│   │   ├── ranger_summoning.lua    # Pet mechanics
+│   │   └── ranger_pets.lua         # Pet definitions
+│   ├── warlock/         # Pet class
+│   ├── druid/           # Shapeshifter
+│   ├── mastermind/      # Pet controller (6 pets)
+│   └── necromancer/     # Death mage (5 pets)
+├── spells/
 │   ├── player_spells.lua
 │   └── monster_spells.lua
-├── abilities/           # Ability definitions
+├── abilities/
 │   ├── player_abilities.lua
 │   └── monster_abilities.lua
-├── monsters/            # Monster definitions
-│   ├── monster_registry.lua
-│   └── monster_ai.lua
-├── equipment/           # Equipment definitions
-│   ├── weapons.lua
+├── equipment/
+│   ├── equipment_system.lua
 │   ├── armor.lua
-│   └── jewelry.lua
-├── encounters/          # Random encounter system
+│   └── weapons.lua
+├── items/
+│   └── items.lua
+├── monsters/
+│   └── monsters_quests.lua
+├── encounters/
 │   └── encounter_tables.lua
-├── class_loader.lua     # Dynamic class loading system
-└── content_loader.lua   # Master content loader
+├── class_loader.lua     # Dynamic class loading
+└── content_loader.lua   # Master loader
 ```
 
-## Character Classes
+## Character Classes (Fully Modularized)
 
-Each character class is modular and consists of up to 5 files:
+All 9 character classes are broken down into modular files. NO classes remain in a single monolithic file.
 
-### 1. `{class}_stats.lua`
-Defines base stats, resources, equipment restrictions:
-- Primary stat (STR, DEX, CON, INT, WIS, CHA)
-- Resource type (Mana, Energy, Focus, etc.)
-- Base health and resource pool
-- Armor type restrictions (Cloth, Leather, Mail, Plate)
-- Weapon type restrictions
-- Level progression bonuses
+### Standard Class Files (4 files)
 
-### 2. `{class}_spells.lua`
-Class-specific spells and shared spells:
-- Spell list with level requirements
-- Cast time, cooldown, cost
-- Damage/healing values
-- Special effects
+Every class has these 4 required files:
 
-### 3. `{class}_abilities.lua`
-Class abilities (non-spell actions):
-- Active abilities
-- Resource costs
-- Cooldowns
-- Special mechanics
+1. **`{class}_stats.lua`** - Base statistics
+   - Primary stat, resource type (Mana/Energy/Focus/Control)
+   - Health, resource pools, regeneration rates
+   - Equipment restrictions (weapons, armor)
+   - Starting stats and stat growth
 
-### 4. `{class}_feats.lua`
-Passive bonuses and talents:
-- Passive stat bonuses
-- Talent trees
-- Specialization options
-- Level-based unlocks
+2. **`{class}_spells.lua`** - Spell list
+   - All spells available to the class
+   - Spell unlock levels
 
-### 5. `{class}_summoning.lua` (optional)
-Pet and summon definitions for classes that have them:
-- Pet types and stats
-- Summon limits per tier
-- Pet abilities
-- Control mechanics
+3. **`{class}_abilities.lua`** - Active abilities
+   - Class-specific abilities with cooldowns and costs
+   - NOT including pet-related abilities (those are in summoning)
+   - Unlock levels for each ability
 
-## Available Classes
+4. **`{class}_feats.lua`** - Passive bonuses (D&D style)
+   - **Earned every 2 levels**: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20
+   - Total of 10 feats by level 20
+   - Player chooses 1 feat per feat level
+   - NOT earned per kill - earned automatically at specific levels
 
-1. **Wizard** (INT) - Arcane caster, high burst damage
-2. **Sorcerer** (CHA) - Natural magic, sustained damage
-3. **Priest** (WIS) - Holy healer and support
-4. **Fighter** (STR) - Melee warrior, high survivability
-5. **Ranger** (DEX) - Ranged DPS with pet
-6. **Warlock** (CHA) - Shadow magic with demons
-7. **Druid** (WIS) - Nature magic, shapeshifting
-8. **Mastermind** (CHA) - Pet controller with 6 pets
-9. **Necromancer** (INT) - Death magic with undead army
+### Pet Class Additional Files (2 files)
 
-## Dynamic Loading
+Classes with pets have 2 additional files for pet systems:
 
-Classes are loaded dynamically at startup:
+5. **`{class}_summoning.lua`** - Summoning mechanics
+   - Max summons allowed
+   - Tier system (tier 1, 2, 3)
+   - Limits per tier
+   - Unlock levels
+   - Summoning rules
+
+6. **`{class}_pets.lua`** - Pet definitions (SEPARATE from summoning)
+   - Complete stat blocks for each pet type
+   - Pet abilities (not player abilities)
+   - Behaviors, AI, special properties
+   - Scaling formulas
+
+### The 9 Classes
+
+| Class | Primary Stat | Resource | Pets | Files |
+|-------|--------------|----------|------|-------|
+| **Wizard** | INT | Mana | No | 4 |
+| **Sorcerer** | CHA | Mana | No | 4 |
+| **Priest** | WIS | Mana | No | 4 |
+| **Fighter** | STR | Energy | No | 4 |
+| **Ranger** | DEX | Focus | 1 | 6 |
+| **Warlock** | CHA | Mana | 1 | 6 |
+| **Druid** | WIS | Mana | No* | 4 |
+| **Mastermind** | CHA | Control | 6 | 6 |
+| **Necromancer** | INT | Mana | 5 | 6 |
+
+\* Druid has shapeshifting instead of pets (in separate shapeshift_forms.lua)
+
+## Feat System (D&D 3.5 / Pathfinder Style)
+
+Feats are earned **every 2 levels**, not per kill or action:
+
+### Feat Progression
+- **Feat Levels**: 2, 4, 6, 8, 10, 12, 14, 16, 18, 20
+- **Total Feats**: 10 by level 20
+- **Selection**: Player chooses 1 feat from available options at each feat level
+- **Automatic**: Feats unlock at specific levels, similar to D&D
+
+### Feat Tiers
+
+Each class has 10+ feat options organized by tier:
+
+- **Early Feats** (Levels 2-6): Basic improvements
+  - Example: +5% damage, +10% mana, +5% crit
+
+- **Mid Feats** (Levels 8-14): Specialized abilities
+  - Example: Reduced cooldowns, improved abilities, unique mechanics
+
+- **Advanced Feats** (Levels 16-20): Powerful capstones
+  - Example: Ultimate power boosts, game-changing passives
+
+## Pet System Architecture
+
+Pet classes separate mechanics from definitions:
+
+### Why Separate Files?
+
+**Summoning File** (`{class}_summoning.lua`):
+- Defines HOW MANY pets
+- Tier limits (e.g., 3 tier 1, 2 tier 2, 1 tier 3)
+- Unlock levels
+- Summoning mechanics
+
+**Pets File** (`{class}_pets.lua`):
+- Defines WHAT the pets are
+- Complete stat blocks
+- Pet-specific abilities (not player abilities)
+- Behaviors and AI
+- Scaling formulas
+
+### Benefits of Separation
+
+1. **Balance**: Adjust numbers vs stats independently
+2. **Clarity**: Pet logic separate from player abilities
+3. **Maintainability**: Easy to find and modify pet data
+4. **Extensibility**: Plugins can add new pets without touching mechanics
+
+### Pet Class Examples
+
+**Ranger** (1 pet):
+- Summoning: 1 animal companion, choose at level 1
+- Pets: Wolf, Bear, or Hawk with full stat blocks
+
+**Mastermind** (6 pets):
+- Summoning: 3 Minions + 2 Lieutenants + 1 Boss Pet
+- Pets: Henchman, Elite Enforcer, Champion definitions
+
+**Necromancer** (5 pets):
+- Summoning: 3 Skeletons + 1 Zombie + 1 Ghoul
+- Pets: Undead minion stat blocks with special properties
+
+## Dynamic Loading System
+
+The `class_loader.lua` module:
+
+### Features
+- Automatically discovers all class directories
+- Loads all required files (stats, spells, abilities, feats)
+- Loads optional files (summoning, pets) for pet classes
+- Validates file existence
+- Provides clean API for accessing class data
+- Supports feat progression queries
+
+### API Examples
 
 ```lua
--- The class_loader.lua automatically discovers and loads all class files
 local ClassLoader = require("data/class_loader")
+
+-- Initialize and load all classes
+ClassLoader:init()
 ClassLoader:loadAllClasses()
 
--- Access loaded class data
-local wizard = ClassLoader:getClass("WIZARD")
-local necromancer = ClassLoader:getClass("NECROMANCER")
+-- Get class data
+local wizardStats = ClassLoader:getClassStats("WIZARD")
+local necromancerPets = ClassLoader:getClassPets("NECROMANCER")
+
+-- Feat progression
+local featInfo = ClassLoader:getFeatProgression()
+-- Returns: {levels = {2,4,6,8,10,12,14,16,18,20}, totalFeats = 10, ...}
+
+-- Check pet classes
+if ClassLoader:canClassSummon("RANGER") then
+    local maxPets = ClassLoader:getMaxSummons("RANGER")  -- Returns 1
+end
 ```
 
-## Plugin Extension
+## Plugin Extension System
 
-Plugins can extend the core game data:
+Plugins in `plugins/` directory can extend core classes:
 
-```lua
--- In a plugin, add custom spells to a class
-local ClassLoader = require("data/class_loader")
-ClassLoader:addSpellToClass("WIZARD", {
-    name = "Custom Fireball",
-    damage = 200,
-    -- ... other properties
-})
+### What Plugins Can Do
 
--- Or create entirely new classes
-ClassLoader:registerClass("BATTLEMAGE", {
-    statsFile = "path/to/battlemage_stats.lua",
-    -- ... other files
-})
-```
+1. **Add spells to existing classes**
+   ```lua
+   ClassLoader:addSpellToClass("WIZARD", {
+       name = "Meteor Swarm",
+       ...
+   })
+   ```
 
-## Random Encounters
+2. **Add abilities to classes**
+   ```lua
+   ClassLoader:addAbilityToClass("FIGHTER", {
+       name = "Titan's Grip",
+       ...
+   })
+   ```
 
-The encounter system generates dynamic monster spawns based on:
-- Player location (biome type)
-- Time of day
-- Player level (±3 levels)
-- Rarity roll (Common to Epic)
+3. **Add new shapeshift forms** (Druid only)
 
-```lua
-local Encounters = require("data/encounters/encounter_tables")
-local encounter = Encounters:rollEncounter("FOREST", "NIGHT", playerLevel)
--- Returns a scaled monster appropriate for the location and level
-```
+4. **Create equipment set bonuses**
 
-## Monster vs Player Content
+5. **Register entirely new classes**
+   ```lua
+   ClassLoader:registerClass("PALADIN", "plugins/paladin")
+   ```
 
-Spells and abilities are separated into player and monster versions:
-- **Player spells/abilities**: Balanced for player use, reasonable costs
-- **Monster spells/abilities**: Designed for NPC use, boss mechanics
+See `plugins/README.md` for detailed extension examples.
 
-This separation allows for better game balance and unique monster behaviors without affecting player power levels.
+## Design Principles
 
-## Leveling System
+1. **Fully Modular**: EVERY class is broken down, no monolithic files
+2. **Consistent Structure**: All classes follow same pattern
+3. **Separation of Concerns**: Pet logic separate from abilities
+4. **D&D-Inspired**: Feat progression matches D&D 3.5/Pathfinder
+5. **Extensible**: Plugins can modify without editing core
+6. **Maintainable**: Easy to find and modify any class data
+7. **Balanced**: Independent tuning of different aspects
 
-- **Current Cap**: Level 20
-- **Future Cap**: Level 120 (planned)
-- **Stat Points**: 3 per level
-- **Ability Unlocks**: New abilities at specific levels (5, 10, 15, 20)
+## File Naming Convention
 
-## Summoning Classes
+All files follow strict naming:
+- `{classname}_stats.lua`
+- `{classname}_spells.lua`
+- `{classname}_abilities.lua`
+- `{classname}_feats.lua`
+- `{classname}_summoning.lua` (pet classes only)
+- `{classname}_pets.lua` (pet classes only)
 
-### Mastermind (6 pets max)
-- Tier 1: 3x Minions (basic)
-- Tier 2: 2x Lieutenants (strong)
-- Tier 3: 1x Boss Pet (powerful)
+Where `{classname}` is lowercase (wizard, necromancer, etc.)
 
-### Necromancer (5 pets max)
-- Tier 1: 3x Skeletons (melee)
-- Tier 2: 1x Zombie (tank)
-- Tier 3: 1x Ghoul (elite)
+## Core vs Plugins
 
-### Ranger (1 pet)
-- Single loyal companion with deep bond
+| Directory | Purpose | Modifiable |
+|-----------|---------|------------|
+| `data/` | Core game content | Not by plugins (but extendable) |
+| `plugins/` | Extensions and custom content | Yes (user-created) |
 
-### Warlock (2 pets max)
-- Tier 1: 1x Imp (utility)
-- Tier 2: 1x Demon (combat)
-
-## File Format
-
-All data files return Lua tables:
-
-```lua
--- Example: necromancer_stats.lua
-return {
-    name = "Necromancer",
-    primaryStat = "INT",
-    resourceType = "Mana",
-    baseHealth = 80,
-    baseResource = 150,
-    allowedArmor = {"CLOTH"},
-    allowedWeapons = {"WAND", "STAFF", "DAGGER"},
-    canDualWield = false,
-    canUseShield = false
-}
-```
-
-## Modification Guidelines
-
-When modifying core data:
-1. **Maintain balance**: Changes affect the entire game
-2. **Test thoroughly**: Core data impacts all players
-3. **Document changes**: Update this README if adding new systems
-4. **Version compatibility**: Consider save game compatibility
-
-For experimental features, use plugins instead of modifying core data.
+Core data is loaded first, then plugins extend it.
