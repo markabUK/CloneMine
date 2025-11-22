@@ -36,6 +36,9 @@ set(HEADERS
 # Create executable
 add_executable(CloneMine ${SOURCES} ${HEADERS})
 
+# Apply strict warnings to our code
+target_compile_options(CloneMine PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+
 # Include directories
 target_include_directories(CloneMine PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

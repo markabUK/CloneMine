@@ -6,17 +6,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable strict warnings for memory safety
+# Enable strict warnings for memory safety (only for our code)
 if(MSVC)
-    add_compile_options(/W4 /WX)
+    set(CLONEMINE_COMPILE_OPTIONS /W4 /WX)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+    set(CLONEMINE_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -Werror)
 endif()
 
 # Find required packages
 find_package(Vulkan REQUIRED)
 
-# Add subdirectories
+# Add subdirectories (external libraries build without strict warnings)
 add_subdirectory(external)
 add_subdirectory(src)
 
