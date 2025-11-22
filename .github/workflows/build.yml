@@ -45,6 +45,12 @@ jobs:
         cd build
         cmake --build . -j$(nproc)
     
+    - name: Run Tests
+      run: |
+        cd build
+        ctest --output-on-failure -j$(nproc)
+      continue-on-error: true
+    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
@@ -60,11 +66,20 @@ jobs:
       with:
         submodules: recursive
     
-    - name: Setup Vulkan SDK
-      uses: humbletim/setup-vulkan-sdk@v1.2.0
+    - name: Cache Vulkan SDK
+      uses: actions/cache@v4
       with:
-        vulkan-query-version: latest
-        vulkan-use-cache: true
+        path: C:\VulkanSDK
+        key: ${{ runner.os }}-vulkan-sdk-latest
+    
+    - name: Setup Vulkan SDK
+      run: |
+        if (!(Test-Path "C:\VulkanSDK")) {
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk-installer.exe" -OutFile vulkan-sdk-installer.exe
+          Start-Process -FilePath .\vulkan-sdk-installer.exe -ArgumentList '/S' -Wait
+        }
+        echo "VULKAN_SDK=C:\VulkanSDK\1.3.280.0" >> $env:GITHUB_ENV
+      shell: pwsh
     
     - name: Configure CMake
       run: |
@@ -78,6 +93,13 @@ jobs:
         cd build
         cmake --build . --config Release
       shell: cmd
+    
+    - name: Run Tests
+      run: |
+        cd build
+        ctest -C Release --output-on-failure
+      shell: cmd
+      continue-on-error: true
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
