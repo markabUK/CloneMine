@@ -8,8 +8,8 @@ namespace clonemine {
 namespace server {
 
 GameServer::GameServer(uint16_t port)
-    : m_port(port)
-    , m_world(std::make_unique<World>())
+    : m_world(std::make_unique<World>())
+    , m_port(port)
 {
     std::cout << "Initializing game server on port " << port << "..." << std::endl;
     

@@ -13,19 +13,35 @@ else()
     set(CLONEMINE_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -Werror)
 endif()
 
-# Find required packages
-find_package(Vulkan REQUIRED)
+# Find Vulkan (optional for server-only builds)
+find_package(Vulkan)
+
+if(Vulkan_FOUND)
+    set(BUILD_CLIENT ON)
+    message(STATUS "Vulkan found - building client and server")
+else()
+    set(BUILD_CLIENT OFF)
+    message(WARNING "Vulkan not found - building server only")
+endif()
 
 # Add subdirectories (external libraries build without strict warnings)
 add_subdirectory(external)
 add_subdirectory(src)
 
 # Install targets
-install(TARGETS CloneMine CloneMineClient CloneMineServer
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+if(Vulkan_FOUND)
+    install(TARGETS CloneMine CloneMineClient CloneMineServer
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+else()
+    install(TARGETS CloneMineServer
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+    )
+endif()
 
 # Install plugin examples
 install(DIRECTORY plugins/

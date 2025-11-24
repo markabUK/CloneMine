@@ -2,6 +2,7 @@
 
 #include "ServerPlayer.h"
 #include "../world/World.h"
+#include "../world/Chunk.h"
 #include "../save/SaveSystem.h"
 #include <asio.hpp>
 #include <memory>
