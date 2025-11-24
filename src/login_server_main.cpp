@@ -1,4 +1,5 @@
 #include "server/LoginServer.h"
+#include "config/ServerConfig.h"
 #include <iostream>
 #include <csignal>
 #include <atomic>
@@ -12,8 +13,9 @@ void signalHandler(int signal) {
 }
 
 int main(int argc, char* argv[]) {
-    uint16_t port = 25564; // Default login port (before game server)
+    uint16_t port = 25564; // Default login port
     uint32_t maxCharacters = 5; // Default max characters per account
+    std::string configFile = "server_config.txt";
     
     if (argc > 1) {
         try {
@@ -31,14 +33,25 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    if (argc > 3) {
+        configFile = argv[3];
+    }
+    
+    // Load configuration (for inter-server communication)
+    clonemine::config::ServerConfig config;
+    config.loadFromFile(configFile);
+    
     std::cout << "CloneMine Login Server\n";
     std::cout << "======================\n";
+    config.printConfig();
     std::cout << "Port: " << port << "\n";
     std::cout << "Max characters per account: " << maxCharacters << "\n";
     std::cout << "\nTest accounts:\n";
     std::cout << "  Username: test, Password: test123\n";
     std::cout << "  Username: admin, Password: admin123\n";
     std::cout << "  Username: player1, Password: password1\n";
+    std::cout << "\nNOTE: Clients should then connect to Character Server at "
+              << config.characterServerHost << ":" << config.characterServerPort << "\n";
     std::cout << std::endl;
     
     // Register signal handlers

@@ -1,0 +1,22 @@
+# CloneMine Server Configuration
+# Servers can be distributed across different hosts
+
+# Login Server
+loginServerHost=localhost
+loginServerPort=25564
+
+# Character Server
+characterServerHost=localhost
+characterServerPort=25568
+
+# Game Server
+gameServerHost=localhost
+gameServerPort=25565
+
+# Chat Server
+chatServerHost=localhost
+chatServerPort=25566
+
+# Quest Server
+questServerHost=localhost
+questServerPort=25567

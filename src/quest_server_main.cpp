@@ -1,4 +1,5 @@
 #include "server/QuestServer.h"
+#include "config/ServerConfig.h"
 #include <iostream>
 #include <csignal>
 #include <atomic>
@@ -12,7 +13,8 @@ void signalHandler(int signal) {
 }
 
 int main(int argc, char* argv[]) {
-    uint16_t port = 25567; // Default quest port (game server + 2)
+    uint16_t port = 25567; // Default quest port
+    std::string configFile = "server_config.txt";
     
     if (argc > 1) {
         try {
@@ -22,8 +24,19 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    if (argc > 2) {
+        configFile = argv[2];
+    }
+    
+    // Load configuration
+    clonemine::config::ServerConfig config;
+    config.loadFromFile(configFile);
+    
     std::cout << "CloneMine Quest Server\n";
     std::cout << "======================\n";
+    config.printConfig();
+    std::cout << "Quest server can be queried by Game Server and clients\n";
+    std::cout << std::endl;
     
     // Register signal handlers
     std::signal(SIGINT, signalHandler);

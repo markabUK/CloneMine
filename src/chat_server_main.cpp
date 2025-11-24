@@ -1,4 +1,5 @@
 #include "server/ChatServer.h"
+#include "config/ServerConfig.h"
 #include <iostream>
 #include <csignal>
 #include <atomic>
@@ -12,7 +13,8 @@ void signalHandler(int signal) {
 }
 
 int main(int argc, char* argv[]) {
-    uint16_t port = 25566; // Default chat port (game server + 1)
+    uint16_t port = 25566; // Default chat port
+    std::string configFile = "server_config.txt";
     
     if (argc > 1) {
         try {
@@ -22,8 +24,20 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    if (argc > 2) {
+        configFile = argv[2];
+    }
+    
+    // Load configuration
+    clonemine::config::ServerConfig config;
+    config.loadFromFile(configFile);
+    
     std::cout << "CloneMine Chat Server\n";
     std::cout << "=====================\n";
+    config.printConfig();
+    std::cout << "Chat server can run on any host - clients connect directly\n";
+    std::cout << "Character names provided by clients during connection\n";
+    std::cout << std::endl;
     
     // Register signal handlers
     std::signal(SIGINT, signalHandler);

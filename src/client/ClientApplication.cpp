@@ -297,7 +297,7 @@ void ClientApplication::sendChatMessage(const std::string& message) {
     }
     
     network::ChatMessage chatMsg;
-    chatMsg.sender = "LocalPlayer";  // TODO: Use actual player name
+    chatMsg.sender = m_characterName; // Use actual character name
     chatMsg.message = message;
     
     m_networkClient->sendMessage(chatMsg);

@@ -35,6 +35,8 @@ public:
     ClientApplication& operator=(ClientApplication&&) noexcept = default;
 
     bool connectToServer(const std::string& host, uint16_t port, const std::string& playerName);
+    void setCharacterName(const std::string& characterName) { m_characterName = characterName; }
+    [[nodiscard]] const std::string& getCharacterName() const { return m_characterName; }
     void run();
     void shutdown();
 
@@ -64,6 +66,9 @@ private:
     float m_cameraYaw{0.0f};
     float m_cameraPitch{0.0f};
     const float m_cameraSensitivity{0.1f};
+    
+    // Character
+    std::string m_characterName{"Player"}; // Character name from character server
     
     // Chat
     std::deque<ChatMessage> m_chatMessages;
