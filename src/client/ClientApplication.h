@@ -71,7 +71,10 @@ private:
     
     bool m_running{true};
     float m_inputSendTimer{0.0f};
-    const float INPUT_SEND_RATE = 1.0f / 30.0f; // Send input 30 times per second
+    // Input send rate: 60 Hz for highly responsive gameplay
+    // Balances network bandwidth (~2KB/s) with input responsiveness
+    // Higher rates (120Hz+) provide minimal benefit for human reaction times
+    const float INPUT_SEND_RATE = 1.0f / 60.0f; // Send input 60 times per second
 };
 
 } // namespace client

@@ -9,6 +9,7 @@ set(COMMON_SOURCES
     plugin/PluginAPI.cpp
     network/NetworkMessage.cpp
     network/PacketEncryption.cpp
+    network/PacketValidator.cpp
     combat/DamageCalculation.cpp
 )
 
@@ -22,8 +23,10 @@ set(COMMON_HEADERS
     plugin/PluginAPI.h
     network/NetworkMessage.h
     network/PacketEncryption.h
+    network/PacketValidator.h
     combat/DamageCalculation.h
     combat/DamageTypes.h
+    quest/QuestData.h
 )
 
 # Client-specific source files
@@ -68,20 +71,54 @@ set(SERVER_HEADERS
     server/ServerPlayer.h
 )
 
-# Always create server executable (no Vulkan dependency)
+# Chat server source files
+set(CHAT_SERVER_SOURCES
+    chat_server_main.cpp
+    server/ChatServer.cpp
+)
+
+set(CHAT_SERVER_HEADERS
+    server/ChatServer.h
+)
+
+# Quest server source files
+set(QUEST_SERVER_SOURCES
+    quest_server_main.cpp
+    server/QuestServer.cpp
+)
+
+set(QUEST_SERVER_HEADERS
+    server/QuestServer.h
+)
+
+# Always create server executables (no Vulkan dependency)
 add_executable(CloneMineServer ${SERVER_SOURCES} ${SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+add_executable(CloneMineChatServer ${CHAT_SERVER_SOURCES} ${CHAT_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+add_executable(CloneMineQuestServer ${QUEST_SERVER_SOURCES} ${QUEST_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 
-# Apply strict warnings to server
+# Apply strict warnings to servers
 target_compile_options(CloneMineServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+target_compile_options(CloneMineChatServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+target_compile_options(CloneMineQuestServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 
-# Include directories for server
+# Include directories for servers
 target_include_directories(CloneMineServer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
 )
+target_include_directories(CloneMineChatServer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
+target_include_directories(CloneMineQuestServer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
 
-# Link libraries for server (no Vulkan or GLFW needed)
+# Link libraries for servers (no Vulkan or GLFW needed)
 target_link_libraries(CloneMineServer PRIVATE external_libs_server)
+target_link_libraries(CloneMineChatServer PRIVATE external_libs_server)
+target_link_libraries(CloneMineQuestServer PRIVATE external_libs_server)
 
 # Only create client executable if Vulkan is available
 if(Vulkan_FOUND)
