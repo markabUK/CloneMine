@@ -13,9 +13,18 @@ if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/lua)
     message(FATAL_ERROR "Lua not found. Please run: git submodule update --init --recursive")
 endif()
 
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/asio)
+    message(FATAL_ERROR "ASIO not found. Please run: git submodule update --init --recursive")
+endif()
+
 # GLM for math operations (header-only)
 add_library(glm INTERFACE)
 target_include_directories(glm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/glm)
+
+# ASIO for networking (header-only)
+add_library(asio INTERFACE)
+target_include_directories(asio INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/asio/asio/include)
+target_compile_definitions(asio INTERFACE ASIO_STANDALONE)
 
 # GLFW for window management
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -46,4 +55,12 @@ target_link_libraries(external_libs INTERFACE
     glfw
     lua_static
     Vulkan::Vulkan
+)
+
+# Export networking-only libs for server
+add_library(external_libs_server INTERFACE)
+target_link_libraries(external_libs_server INTERFACE
+    glm
+    lua_static
+    asio
 )

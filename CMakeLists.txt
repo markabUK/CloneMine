@@ -21,7 +21,7 @@ add_subdirectory(external)
 add_subdirectory(src)
 
 # Install targets
-install(TARGETS CloneMine
+install(TARGETS CloneMine CloneMineClient CloneMineServer
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

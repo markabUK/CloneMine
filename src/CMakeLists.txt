@@ -1,4 +1,96 @@
-# Source files
+# Common source files shared between client and server
+set(COMMON_SOURCES
+    world/Chunk.cpp
+    world/World.cpp
+    world/Block.cpp
+    world/Player.cpp
+    plugin/PluginManager.cpp
+    plugin/LuaSandbox.cpp
+    network/NetworkMessage.cpp
+)
+
+set(COMMON_HEADERS
+    world/Chunk.h
+    world/World.h
+    world/Block.h
+    world/Player.h
+    plugin/PluginManager.h
+    plugin/LuaSandbox.h
+    plugin/PluginAPI.h
+    network/NetworkMessage.h
+)
+
+# Client-specific source files
+set(CLIENT_SOURCES
+    client_main.cpp
+    client/ClientApplication.cpp
+    client/NetworkClient.cpp
+    core/Application.cpp
+    core/Window.cpp
+    rendering/VulkanContext.cpp
+    rendering/VulkanDevice.cpp
+    rendering/VulkanSwapchain.cpp
+    rendering/VulkanPipeline.cpp
+    rendering/VulkanBuffer.cpp
+    rendering/Renderer.cpp
+)
+
+set(CLIENT_HEADERS
+    client/ClientApplication.h
+    client/NetworkClient.h
+    core/Application.h
+    core/Window.h
+    rendering/VulkanContext.h
+    rendering/VulkanDevice.h
+    rendering/VulkanSwapchain.h
+    rendering/VulkanPipeline.h
+    rendering/VulkanBuffer.h
+    rendering/Renderer.h
+)
+
+# Server-specific source files
+set(SERVER_SOURCES
+    server_main.cpp
+    server/GameServer.cpp
+    server/ServerPlayer.cpp
+)
+
+set(SERVER_HEADERS
+    server/GameServer.h
+    server/ServerPlayer.h
+)
+
+# Create client executable
+add_executable(CloneMineClient ${CLIENT_SOURCES} ${CLIENT_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+
+# Apply strict warnings to client
+target_compile_options(CloneMineClient PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+
+# Include directories for client
+target_include_directories(CloneMineClient PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
+
+# Link libraries for client
+target_link_libraries(CloneMineClient PRIVATE external_libs asio)
+
+# Create server executable
+add_executable(CloneMineServer ${SERVER_SOURCES} ${SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+
+# Apply strict warnings to server
+target_compile_options(CloneMineServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+
+# Include directories for server
+target_include_directories(CloneMineServer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
+
+# Link libraries for server (no Vulkan or GLFW needed)
+target_link_libraries(CloneMineServer PRIVATE external_libs_server)
+
+# Keep the original CloneMine executable for backward compatibility (single-player mode)
 set(SOURCES
     main.cpp
     core/Application.cpp
@@ -33,7 +125,7 @@ set(HEADERS
     plugin/PluginAPI.h
 )
 
-# Create executable
+# Create original executable
 add_executable(CloneMine ${SOURCES} ${HEADERS})
 
 # Apply strict warnings to our code
@@ -72,4 +164,5 @@ if(GLSLC)
     
     add_custom_target(shaders ALL DEPENDS ${SPIRV_SHADERS})
     add_dependencies(CloneMine shaders)
+    add_dependencies(CloneMineClient shaders)
 endif()
