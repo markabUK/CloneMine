@@ -27,6 +27,7 @@ set(COMMON_HEADERS
     combat/DamageCalculation.h
     combat/DamageTypes.h
     quest/QuestData.h
+    character/CharacterData.h
 )
 
 # Client-specific source files
@@ -91,15 +92,39 @@ set(QUEST_SERVER_HEADERS
     server/QuestServer.h
 )
 
+# Login server source files
+set(LOGIN_SERVER_SOURCES
+    login_server_main.cpp
+    server/LoginServer.cpp
+)
+
+set(LOGIN_SERVER_HEADERS
+    server/LoginServer.h
+)
+
+# Character server source files
+set(CHARACTER_SERVER_SOURCES
+    character_server_main.cpp
+    server/CharacterServer.cpp
+)
+
+set(CHARACTER_SERVER_HEADERS
+    server/CharacterServer.h
+)
+
 # Always create server executables (no Vulkan dependency)
 add_executable(CloneMineServer ${SERVER_SOURCES} ${SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 add_executable(CloneMineChatServer ${CHAT_SERVER_SOURCES} ${CHAT_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 add_executable(CloneMineQuestServer ${QUEST_SERVER_SOURCES} ${QUEST_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+add_executable(CloneMineLoginServer ${LOGIN_SERVER_SOURCES} ${LOGIN_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+add_executable(CloneMineCharacterServer ${CHARACTER_SERVER_SOURCES} ${CHARACTER_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 
 # Apply strict warnings to servers
 target_compile_options(CloneMineServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 target_compile_options(CloneMineChatServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 target_compile_options(CloneMineQuestServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+target_compile_options(CloneMineLoginServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+target_compile_options(CloneMineCharacterServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 
 # Include directories for servers
 target_include_directories(CloneMineServer PRIVATE
@@ -114,11 +139,21 @@ target_include_directories(CloneMineQuestServer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
 )
+target_include_directories(CloneMineLoginServer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
+target_include_directories(CloneMineCharacterServer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
 
 # Link libraries for servers (no Vulkan or GLFW needed)
 target_link_libraries(CloneMineServer PRIVATE external_libs_server)
 target_link_libraries(CloneMineChatServer PRIVATE external_libs_server)
 target_link_libraries(CloneMineQuestServer PRIVATE external_libs_server)
+target_link_libraries(CloneMineLoginServer PRIVATE external_libs_server)
+target_link_libraries(CloneMineCharacterServer PRIVATE external_libs_server)
 
 # Only create client executable if Vulkan is available
 if(Vulkan_FOUND)

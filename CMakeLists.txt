@@ -30,13 +30,13 @@ add_subdirectory(src)
 
 # Install targets
 if(Vulkan_FOUND)
-    install(TARGETS CloneMine CloneMineClient CloneMineServer CloneMineChatServer CloneMineQuestServer
+    install(TARGETS CloneMine CloneMineClient CloneMineServer CloneMineChatServer CloneMineQuestServer CloneMineLoginServer CloneMineCharacterServer
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
     )
 else()
-    install(TARGETS CloneMineServer CloneMineChatServer CloneMineQuestServer
+    install(TARGETS CloneMineServer CloneMineChatServer CloneMineQuestServer CloneMineLoginServer CloneMineCharacterServer
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
