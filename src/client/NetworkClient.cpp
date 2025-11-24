@@ -5,6 +5,9 @@ namespace clonemine {
 namespace client {
 
 NetworkClient::NetworkClient() {
+    // Initialize encryption with a shared secret key
+    // TODO: In production, use proper key exchange mechanism
+    m_encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
 }
 
 NetworkClient::~NetworkClient() {
@@ -23,12 +26,15 @@ bool NetworkClient::connect(const std::string& host, uint16_t port, const std::s
         auto endpoints = resolver.resolve(host, std::to_string(port));
         asio::connect(*m_socket, endpoints);
         
-        std::cout << "Connected to server" << std::endl;
+        std::cout << "Connected to server (encrypted channel)" << std::endl;
         
         // Send connect request
         network::ConnectRequest request;
         request.playerName = playerName;
         auto data = request.serialize();
+        
+        // Encrypt the data
+        m_encryption->encrypt(data);
         
         // Send data size first
         uint32_t size = static_cast<uint32_t>(data.size());
@@ -52,6 +58,9 @@ bool NetworkClient::connect(const std::string& host, uint16_t port, const std::s
         
         std::vector<uint8_t> responseData(responseSize);
         asio::read(*m_socket, asio::buffer(responseData));
+        
+        // Decrypt the response
+        m_encryption->decrypt(responseData);
         
         // Parse response
         if (responseData.size() >= 6 && 
@@ -136,6 +145,9 @@ void NetworkClient::sendMessage(const network::NetworkMessage& message) {
     try {
         auto data = message.serialize();
         
+        // Encrypt the data before sending
+        m_encryption->encrypt(data);
+        
         // Send data size first
         uint32_t size = static_cast<uint32_t>(data.size());
         std::vector<uint8_t> sizeBuffer(4);
@@ -174,6 +186,9 @@ void NetworkClient::receiveMessages() {
             // Read message data
             std::vector<uint8_t> messageData(messageSize);
             asio::read(*m_socket, asio::buffer(messageData));
+            
+            // Decrypt the received data
+            m_encryption->decrypt(messageData);
             
             // Queue message for processing
             {

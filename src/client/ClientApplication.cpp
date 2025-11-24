@@ -8,6 +8,7 @@ namespace client {
 
 ClientApplication::ClientApplication(std::string_view title, uint32_t width, uint32_t height)
     : m_window(std::make_unique<Window>(title, width, height))
+    , m_inputManager(std::make_unique<InputManager>(m_window->getNativeWindow()))
     , m_renderer(std::make_unique<Renderer>(*m_window))
     , m_world(std::make_unique<World>())
     , m_pluginManager(std::make_unique<PluginManager>())
@@ -54,17 +55,40 @@ void ClientApplication::shutdown() {
 }
 
 void ClientApplication::processInput() {
-    // Input processing will be handled here
+    // Update input state
+    m_inputManager->update();
+    
+    // Check for chat message send
+    if (m_inputManager->isKeyJustPressed(Key::ENTER) && 
+        !m_inputManager->isChatMode() &&
+        !m_inputManager->getTypedText().empty()) {
+        sendChatMessage(m_inputManager->getTypedText());
+        m_inputManager->clearTypedText();
+    }
+    
+    // Update camera with mouse
+    if (!m_inputManager->isChatMode()) {
+        glm::vec2 mouseDelta = m_inputManager->getMouseDelta();
+        m_cameraYaw += mouseDelta.x * m_cameraSensitivity;
+        m_cameraPitch -= mouseDelta.y * m_cameraSensitivity;
+        
+        // Clamp pitch
+        m_cameraPitch = std::clamp(m_cameraPitch, -89.0f, 89.0f);
+        
+        // Update local player rotation
+        m_localPlayer.setRotation(m_cameraYaw, m_cameraPitch);
+    }
+    
     // Plugin callbacks for input
     m_pluginManager->callHook("onInput");
-    
-    // TODO: Capture actual input from window
-    // For now, just update local player prediction
 }
 
 void ClientApplication::update(float deltaTime) {
     // Process network messages
     m_networkClient->processMessages();
+    
+    // Update chat messages
+    updateChat(deltaTime);
     
     // Update local prediction
     m_localPlayer.update(deltaTime);
@@ -100,6 +124,9 @@ void ClientApplication::render() {
     
     // Plugin render callbacks
     m_pluginManager->callHook("onRender");
+    
+    // TODO: Render chat messages (would need UI system)
+    // For now, just log them
 }
 
 void ClientApplication::handleNetworkMessage(const std::vector<uint8_t>& data) {
@@ -193,6 +220,46 @@ void ClientApplication::handleNetworkMessage(const std::vector<uint8_t>& data) {
             break;
         }
         
+        case network::MessageType::CHAT_MESSAGE: {
+            if (data.size() < 10) break;
+            
+            // Parse chat message
+            size_t offset = 1;
+            
+            // Read sender length
+            uint32_t senderLen = data[offset] | (data[offset+1] << 8) | 
+                                (data[offset+2] << 16) | (data[offset+3] << 24);
+            offset += 4;
+            
+            if (offset + senderLen + 4 > data.size()) break;
+            
+            std::string sender(data.begin() + offset, data.begin() + offset + senderLen);
+            offset += senderLen;
+            
+            // Read message length
+            uint32_t msgLen = data[offset] | (data[offset+1] << 8) | 
+                             (data[offset+2] << 16) | (data[offset+3] << 24);
+            offset += 4;
+            
+            if (offset + msgLen > data.size()) break;
+            
+            std::string message(data.begin() + offset, data.begin() + offset + msgLen);
+            
+            // Add to chat messages
+            ChatMessage chatMsg;
+            chatMsg.sender = sender;
+            chatMsg.message = message;
+            chatMsg.timeRemaining = 10.0f;
+            
+            m_chatMessages.push_back(chatMsg);
+            if (m_chatMessages.size() > MAX_CHAT_MESSAGES) {
+                m_chatMessages.pop_front();
+            }
+            
+            std::cout << "[CHAT] " << sender << ": " << message << std::endl;
+            break;
+        }
+        
         default:
             // Unknown message type
             break;
@@ -208,13 +275,13 @@ void ClientApplication::sendPlayerInput() {
     network::PlayerInput input;
     input.playerId = m_networkClient->getPlayerId();
     
-    // TODO: Get actual input from window/input system
-    // For now, send default values
-    input.movement = glm::vec3(0.0f);
-    input.yaw = m_localPlayer.getYaw();
-    input.pitch = m_localPlayer.getPitch();
-    input.jump = false;
-    input.crouch = false;
+    // Get actual input from input manager
+    glm::vec3 movement = m_inputManager->getMovementInput();
+    input.movement = movement;
+    input.yaw = m_cameraYaw;
+    input.pitch = m_cameraPitch;
+    input.jump = m_inputManager->isKeyPressed(Key::SPACE);
+    input.crouch = m_inputManager->isKeyPressed(Key::LEFT_SHIFT);
     input.timestamp = static_cast<uint32_t>(
         std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()
@@ -222,6 +289,30 @@ void ClientApplication::sendPlayerInput() {
     );
     
     m_networkClient->sendMessage(input);
+}
+
+void ClientApplication::sendChatMessage(const std::string& message) {
+    if (!m_networkClient->isConnected() || message.empty()) {
+        return;
+    }
+    
+    network::ChatMessage chatMsg;
+    chatMsg.sender = "LocalPlayer";  // TODO: Use actual player name
+    chatMsg.message = message;
+    
+    m_networkClient->sendMessage(chatMsg);
+}
+
+void ClientApplication::updateChat(float deltaTime) {
+    // Update chat message timers
+    for (auto it = m_chatMessages.begin(); it != m_chatMessages.end(); ) {
+        it->timeRemaining -= deltaTime;
+        if (it->timeRemaining <= 0.0f) {
+            it = m_chatMessages.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 } // namespace client

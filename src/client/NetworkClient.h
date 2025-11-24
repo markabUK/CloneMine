@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../network/NetworkMessage.h"
+#include "../network/PacketEncryption.h"
 #include <asio.hpp>
 #include <memory>
 #include <string>
@@ -49,6 +50,9 @@ private:
     MessageCallback m_messageCallback;
     std::queue<std::vector<uint8_t>> m_messageQueue;
     std::mutex m_queueMutex;
+    
+    // Encryption
+    std::unique_ptr<network::PacketEncryption> m_encryption;
 };
 
 } // namespace client

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../world/Player.h"
+#include "../network/PacketEncryption.h"
 #include <memory>
 #include <asio.hpp>
 
@@ -40,6 +41,9 @@ private:
     Player m_player;
     std::shared_ptr<asio::ip::tcp::socket> m_socket;
     bool m_connected{true};
+    
+    // Encryption
+    std::unique_ptr<network::PacketEncryption> m_encryption;
 };
 
 } // namespace server

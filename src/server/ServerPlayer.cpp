@@ -10,6 +10,9 @@ ServerPlayer::ServerPlayer(uint32_t id, std::shared_ptr<asio::ip::tcp::socket> s
 {
     // Initialize player at spawn position
     m_player.setPosition(glm::vec3(0.0f, 100.0f, 0.0f));
+    
+    // Initialize encryption with the same shared secret
+    m_encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
 }
 
 void ServerPlayer::sendData(const std::vector<uint8_t>& data) {
@@ -18,8 +21,12 @@ void ServerPlayer::sendData(const std::vector<uint8_t>& data) {
     }
     
     try {
+        // Make a copy to encrypt (don't modify original)
+        std::vector<uint8_t> encryptedData = data;
+        m_encryption->encrypt(encryptedData);
+        
         // Send data size first (4 bytes)
-        uint32_t size = static_cast<uint32_t>(data.size());
+        uint32_t size = static_cast<uint32_t>(encryptedData.size());
         std::vector<uint8_t> sizeBuffer(4);
         sizeBuffer[0] = static_cast<uint8_t>(size & 0xFF);
         sizeBuffer[1] = static_cast<uint8_t>((size >> 8) & 0xFF);
@@ -27,7 +34,7 @@ void ServerPlayer::sendData(const std::vector<uint8_t>& data) {
         sizeBuffer[3] = static_cast<uint8_t>((size >> 24) & 0xFF);
         
         asio::write(*m_socket, asio::buffer(sizeBuffer));
-        asio::write(*m_socket, asio::buffer(data));
+        asio::write(*m_socket, asio::buffer(encryptedData));
     } catch (const std::exception& e) {
         std::cerr << "Error sending data to player " << m_id << ": " << e.what() << std::endl;
         m_connected = false;

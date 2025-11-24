@@ -32,6 +32,7 @@ private:
     void acceptConnections();
     void handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket);
     void handlePlayerInput(uint32_t playerId, const std::vector<uint8_t>& data);
+    void handleChatMessage(uint32_t playerId, const std::vector<uint8_t>& data);
     void broadcastPlayerStates();
     void updateGame(float deltaTime);
     void savePlayerData(const ServerPlayer& player);

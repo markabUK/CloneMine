@@ -118,23 +118,53 @@ void GameServer::acceptConnections() {
 
 void GameServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket) {
     try {
-        // Read connect request (simplified - just read player name)
-        std::vector<uint8_t> buffer(256);
-        size_t len = socket->read_some(asio::buffer(buffer));
-        buffer.resize(len);
+        // Create a temporary encryption instance for this connection
+        auto encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
         
-        // Parse connect request (simplified)
-        if (len < 5 || buffer[0] != static_cast<uint8_t>(network::MessageType::CONNECT_REQUEST)) {
+        // Read message size first
+        std::vector<uint8_t> sizeBuffer(4);
+        asio::read(*socket, asio::buffer(sizeBuffer));
+        
+        uint32_t messageSize = sizeBuffer[0] |
+                              (sizeBuffer[1] << 8) |
+                              (sizeBuffer[2] << 16) |
+                              (sizeBuffer[3] << 24);
+        
+        if (messageSize == 0 || messageSize > 1024) {
+            std::cerr << "Invalid connect request size" << std::endl;
+            socket->close();
+            return;
+        }
+        
+        // Read and decrypt connect request
+        std::vector<uint8_t> buffer(messageSize);
+        asio::read(*socket, asio::buffer(buffer));
+        encryption->decrypt(buffer);
+        
+        // Parse connect request
+        if (buffer.empty() || buffer[0] != static_cast<uint8_t>(network::MessageType::CONNECT_REQUEST)) {
             std::cerr << "Invalid connect request" << std::endl;
             socket->close();
             return;
         }
         
         // Extract player name (skip type byte and playerId)
+        if (buffer.size() < 9) {
+            std::cerr << "Connect request too small" << std::endl;
+            socket->close();
+            return;
+        }
+        
         uint32_t nameLen = buffer[5] | (buffer[6] << 8) | (buffer[7] << 16) | (buffer[8] << 24);
+        if (9 + nameLen > buffer.size()) {
+            std::cerr << "Invalid player name length" << std::endl;
+            socket->close();
+            return;
+        }
+        
         std::string playerName(buffer.begin() + 9, buffer.begin() + 9 + nameLen);
         
-        std::cout << "Player '" << playerName << "' requesting connection" << std::endl;
+        std::cout << "Player '" << playerName << "' requesting connection (encrypted)" << std::endl;
         
         // Create new player
         uint32_t playerId = m_nextPlayerId++;
@@ -294,6 +324,53 @@ bool GameServer::loadPlayerData(ServerPlayer& player, const std::string& playerN
     
     std::cout << "No saved data found for " << playerName << ", using defaults" << std::endl;
     return false;
+}
+
+void GameServer::handleChatMessage(uint32_t playerId, const std::vector<uint8_t>& data) {
+    // Find the sending player
+    auto it = m_players.find(playerId);
+    if (it == m_players.end()) {
+        return;
+    }
+    
+    // Parse chat message
+    if (data.size() < 10 || data[0] != static_cast<uint8_t>(network::MessageType::CHAT_MESSAGE)) {
+        return;
+    }
+    
+    size_t offset = 1;
+    
+    // Read sender length
+    if (offset + 4 > data.size()) return;
+    uint32_t senderLen = data[offset] | (data[offset+1] << 8) | 
+                        (data[offset+2] << 16) | (data[offset+3] << 24);
+    offset += 4;
+    
+    if (offset + senderLen + 4 > data.size()) return;
+    
+    std::string sender(data.begin() + offset, data.begin() + offset + senderLen);
+    offset += senderLen;
+    
+    // Read message length
+    uint32_t msgLen = data[offset] | (data[offset+1] << 8) | 
+                     (data[offset+2] << 16) | (data[offset+3] << 24);
+    offset += 4;
+    
+    if (offset + msgLen > data.size()) return;
+    
+    std::string message(data.begin() + offset, data.begin() + offset + msgLen);
+    
+    std::cout << "[CHAT] " << it->second->getName() << ": " << message << std::endl;
+    
+    // Broadcast to all players
+    network::ChatMessage chatMsg;
+    chatMsg.sender = it->second->getName();
+    chatMsg.message = message;
+    auto chatData = chatMsg.serialize();
+    
+    for (auto& [id, player] : m_players) {
+        player->sendData(chatData);
+    }
 }
 
 } // namespace server

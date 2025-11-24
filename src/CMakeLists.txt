@@ -8,6 +8,7 @@ set(COMMON_SOURCES
     plugin/LuaSandbox.cpp
     plugin/PluginAPI.cpp
     network/NetworkMessage.cpp
+    network/PacketEncryption.cpp
     combat/DamageCalculation.cpp
 )
 
@@ -20,6 +21,7 @@ set(COMMON_HEADERS
     plugin/LuaSandbox.h
     plugin/PluginAPI.h
     network/NetworkMessage.h
+    network/PacketEncryption.h
     combat/DamageCalculation.h
     combat/DamageTypes.h
 )
@@ -31,6 +33,7 @@ set(CLIENT_SOURCES
     client/NetworkClient.cpp
     core/Application.cpp
     core/Window.cpp
+    core/InputManager.cpp
     rendering/VulkanContext.cpp
     rendering/VulkanDevice.cpp
     rendering/VulkanSwapchain.cpp
@@ -44,6 +47,7 @@ set(CLIENT_HEADERS
     client/NetworkClient.h
     core/Application.h
     core/Window.h
+    core/InputManager.h
     rendering/VulkanContext.h
     rendering/VulkanDevice.h
     rendering/VulkanSwapchain.h
