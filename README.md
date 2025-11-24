@@ -178,3 +178,9 @@ Contributions are welcome! Please ensure:
 - GLM - Mathematics library
 - Lua - Scripting language
 - Vulkan - Graphics API
+
+
+## Testing what co-pilot agent will generate. 
+
+Not a working project.
+
