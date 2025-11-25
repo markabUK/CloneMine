@@ -11,6 +11,8 @@ set(COMMON_SOURCES
     network/PacketEncryption.cpp
     network/PacketValidator.cpp
     combat/DamageCalculation.cpp
+    audio/AudioManager.cpp
+    scripting/ScriptedScene.cpp
 )
 
 set(COMMON_HEADERS
@@ -28,6 +30,9 @@ set(COMMON_HEADERS
     combat/DamageTypes.h
     quest/QuestData.h
     character/CharacterData.h
+    audio/AudioManager.h
+    scripting/ScriptedScene.h
+    config/ServerConfig.h
 )
 
 # Client-specific source files
