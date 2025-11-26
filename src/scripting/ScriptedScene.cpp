@@ -163,6 +163,98 @@ void ScriptedScene::executeAction(const SceneAction& action) {
             // Just wait for duration
             break;
             
+        // Combat and action types
+        case SceneActionType::ATTACK:
+            std::cout << "[ScriptedScene] Entity '" << action.stringParam << "' attacks '" 
+                      << action.stringParam2 << "'" << std::endl;
+            // TODO: Trigger attack animation and damage calculation
+            break;
+            
+        case SceneActionType::CAST_SPELL:
+            std::cout << "[ScriptedScene] Entity '" << action.stringParam << "' casts spell '" 
+                      << action.stringParam2 << "'" << std::endl;
+            // TODO: Trigger spell animation and effects
+            break;
+            
+        case SceneActionType::USE_ABILITY:
+            std::cout << "[ScriptedScene] Entity '" << action.stringParam << "' uses ability '" 
+                      << action.stringParam2 << "'" << std::endl;
+            // TODO: Trigger ability effects
+            break;
+            
+        case SceneActionType::TAKE_DAMAGE:
+            std::cout << "[ScriptedScene] Entity '" << action.stringParam << "' takes " 
+                      << action.intParam << " damage" << std::endl;
+            // TODO: Apply damage and play hurt animation
+            break;
+            
+        case SceneActionType::DIE:
+            std::cout << "[ScriptedScene] Entity '" << action.stringParam << "' dies (" 
+                      << action.stringParam2 << ")" << std::endl;
+            // TODO: Trigger death animation and effects
+            break;
+            
+        case SceneActionType::SHAPE_CHANGE:
+            std::cout << "[ScriptedScene] Entity '" << action.stringParam 
+                      << "' transforms into '" << action.stringParam2 << "'" << std::endl;
+            // TODO: Trigger transformation animation
+            break;
+            
+        case SceneActionType::APPLY_STATUS:
+            std::cout << "[ScriptedScene] Applying status '" << action.stringParam2 
+                      << "' to entity '" << action.stringParam << "'" << std::endl;
+            // TODO: Apply status effect
+            break;
+            
+        case SceneActionType::REMOVE_STATUS:
+            std::cout << "[ScriptedScene] Removing status '" << action.stringParam2 
+                      << "' from entity '" << action.stringParam << "'" << std::endl;
+            // TODO: Remove status effect
+            break;
+            
+        case SceneActionType::AREA_EFFECT:
+            std::cout << "[ScriptedScene] Area effect '" << action.stringParam << "' at (" 
+                      << action.vec3Param.x << ", " << action.vec3Param.y << ", " 
+                      << action.vec3Param.z << ") radius: " << action.floatParam << std::endl;
+            // TODO: Create area effect (explosion, disintegration zone, etc.)
+            break;
+            
+        case SceneActionType::DESTROY_ENTITY:
+            std::cout << "[ScriptedScene] Destroying entity '" << action.stringParam 
+                      << "' via " << action.stringParam2 << std::endl;
+            // TODO: Trigger destruction effect (vaporize, disintegrate, etc.)
+            break;
+            
+        case SceneActionType::HEAL:
+            std::cout << "[ScriptedScene] Healing entity '" << action.stringParam 
+                      << "' for " << action.intParam << " HP" << std::endl;
+            // TODO: Apply healing
+            break;
+            
+        case SceneActionType::TELEPORT:
+            std::cout << "[ScriptedScene] Teleporting entity '" << action.stringParam << "' to (" 
+                      << action.vec3Param.x << ", " << action.vec3Param.y << ", " 
+                      << action.vec3Param.z << ")" << std::endl;
+            // TODO: Teleport entity
+            break;
+            
+        case SceneActionType::KNOCKBACK:
+            std::cout << "[ScriptedScene] Knocking back entity '" << action.stringParam 
+                      << "' in direction (" << action.vec3Param.x << ", " 
+                      << action.vec3Param.y << ", " << action.vec3Param.z 
+                      << ") with force " << action.floatParam << std::endl;
+            // TODO: Apply knockback force
+            break;
+            
+        case SceneActionType::CHAIN_ACTIONS:
+            std::cout << "[ScriptedScene] Executing " << action.chainedActions.size() 
+                      << " chained actions" << std::endl;
+            // Execute all chained actions in sequence
+            for (const auto& chainedAction : action.chainedActions) {
+                executeAction(chainedAction);
+            }
+            break;
+            
         default:
             break;
     }
@@ -453,6 +545,146 @@ SceneAction createCompleteQuestAction(const std::string& questId) {
     action.type = SceneActionType::COMPLETE_QUEST;
     action.stringParam = questId;
     action.duration = 0.1f;
+    return action;
+}
+
+// Combat and action helpers
+
+SceneAction createAttackAction(const std::string& entityId, const std::string& targetId, 
+                               const std::string& attackType, float duration) {
+    SceneAction action;
+    action.type = SceneActionType::ATTACK;
+    action.stringParam = entityId;
+    action.stringParam2 = targetId;
+    action.duration = duration;
+    return action;
+}
+
+SceneAction createCastSpellAction(const std::string& entityId, const std::string& spellName,
+                                 const std::string& targetId, const glm::vec3& targetPos) {
+    SceneAction action;
+    action.type = SceneActionType::CAST_SPELL;
+    action.stringParam = entityId;
+    action.stringParam2 = spellName;
+    action.vec3Param = targetPos;
+    action.duration = 2.0f; // Default spell cast time
+    return action;
+}
+
+SceneAction createUseAbilityAction(const std::string& entityId, const std::string& abilityName,
+                                   const std::string& targetId) {
+    SceneAction action;
+    action.type = SceneActionType::USE_ABILITY;
+    action.stringParam = entityId;
+    action.stringParam2 = abilityName;
+    action.duration = 1.0f;
+    return action;
+}
+
+SceneAction createTakeDamageAction(const std::string& entityId, int damageAmount, 
+                                   const std::string& damageType) {
+    SceneAction action;
+    action.type = SceneActionType::TAKE_DAMAGE;
+    action.stringParam = entityId;
+    action.stringParam2 = damageType;
+    action.intParam = damageAmount;
+    action.duration = 0.5f; // Time for hurt animation
+    return action;
+}
+
+SceneAction createDieAction(const std::string& entityId, const std::string& deathType) {
+    SceneAction action;
+    action.type = SceneActionType::DIE;
+    action.stringParam = entityId;
+    action.stringParam2 = deathType; // normal, vaporize, disintegrate, explode, etc.
+    action.duration = 2.0f; // Time for death animation
+    return action;
+}
+
+SceneAction createShapeChangeAction(const std::string& entityId, const std::string& newForm,
+                                    float duration) {
+    SceneAction action;
+    action.type = SceneActionType::SHAPE_CHANGE;
+    action.stringParam = entityId;
+    action.stringParam2 = newForm;
+    action.duration = duration;
+    return action;
+}
+
+SceneAction createApplyStatusAction(const std::string& entityId, const std::string& statusName,
+                                    float duration) {
+    SceneAction action;
+    action.type = SceneActionType::APPLY_STATUS;
+    action.stringParam = entityId;
+    action.stringParam2 = statusName; // poison, stun, slow, haste, etc.
+    action.floatParam = duration; // Status effect duration
+    action.duration = 0.5f; // Action execution time
+    return action;
+}
+
+SceneAction createAreaEffectAction(const std::string& effectType, const glm::vec3& position,
+                                   float radius, int power) {
+    SceneAction action;
+    action.type = SceneActionType::AREA_EFFECT;
+    action.stringParam = effectType; // explosion, disintegration, freeze, burn, etc.
+    action.vec3Param = position;
+    action.floatParam = radius;
+    action.intParam = power;
+    action.duration = 3.0f; // Effect duration
+    return action;
+}
+
+SceneAction createDestroyEntityAction(const std::string& entityId, 
+                                      const std::string& destructionType) {
+    SceneAction action;
+    action.type = SceneActionType::DESTROY_ENTITY;
+    action.stringParam = entityId;
+    action.stringParam2 = destructionType; // vaporize, disintegrate, crumble, explode
+    action.duration = 1.0f; // Destruction effect duration
+    return action;
+}
+
+SceneAction createHealAction(const std::string& entityId, int healAmount) {
+    SceneAction action;
+    action.type = SceneActionType::HEAL;
+    action.stringParam = entityId;
+    action.intParam = healAmount;
+    action.duration = 1.0f; // Healing effect duration
+    return action;
+}
+
+SceneAction createTeleportAction(const std::string& entityId, const glm::vec3& position) {
+    SceneAction action;
+    action.type = SceneActionType::TELEPORT;
+    action.stringParam = entityId;
+    action.vec3Param = position;
+    action.duration = 0.5f; // Teleport effect duration
+    return action;
+}
+
+SceneAction createKnockbackAction(const std::string& entityId, const glm::vec3& direction,
+                                  float force) {
+    SceneAction action;
+    action.type = SceneActionType::KNOCKBACK;
+    action.stringParam = entityId;
+    action.vec3Param = direction;
+    action.floatParam = force;
+    action.duration = 1.0f; // Knockback animation duration
+    return action;
+}
+
+SceneAction createChainedAction(const std::vector<SceneAction>& actions) {
+    SceneAction action;
+    action.type = SceneActionType::CHAIN_ACTIONS;
+    action.chainedActions = actions;
+    
+    // Calculate total duration from all chained actions
+    float totalDuration = 0.0f;
+    for (const auto& chainedAction : actions) {
+        totalDuration += chainedAction.duration;
+    }
+    action.duration = totalDuration;
+    
     return action;
 }
 

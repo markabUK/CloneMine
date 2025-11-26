@@ -42,7 +42,22 @@ enum class SceneActionType {
     SET_CAMERA_TARGET,
     SHOW_TEXT,
     GIVE_ITEM,
-    COMPLETE_QUEST
+    COMPLETE_QUEST,
+    // Combat and action types
+    ATTACK,              // Entity performs attack action
+    CAST_SPELL,          // Entity casts a spell
+    USE_ABILITY,         // Entity uses an ability
+    TAKE_DAMAGE,         // Entity takes damage
+    DIE,                 // Entity dies (triggers death animation/effects)
+    SHAPE_CHANGE,        // Entity transforms into another form
+    APPLY_STATUS,        // Apply status effect (buff/debuff)
+    REMOVE_STATUS,       // Remove status effect
+    AREA_EFFECT,         // Create area effect (explosion, disintegration, etc.)
+    DESTROY_ENTITY,      // Instantly destroy/vaporize entity
+    HEAL,                // Heal entity
+    TELEPORT,            // Teleport entity to position
+    KNOCKBACK,           // Apply knockback force to entity
+    CHAIN_ACTIONS        // Execute multiple actions in sequence on same entity
 };
 
 struct DialogLine {
@@ -55,13 +70,20 @@ struct DialogLine {
 struct SceneAction {
     SceneActionType type;
     float duration{0.0f};
-    std::string stringParam;
-    glm::vec3 vec3Param{0.0f};
-    int intParam{0};
-    float floatParam{0.0f};
+    std::string stringParam;      // Entity ID, spell name, ability name, etc.
+    std::string stringParam2;     // Target entity ID, effect type, etc.
+    glm::vec3 vec3Param{0.0f};    // Position, direction, color
+    glm::vec3 vec3Param2{0.0f};   // Additional position/vector data
+    int intParam{0};              // Damage amount, status ID, etc.
+    float floatParam{0.0f};       // Radius, intensity, scale, etc.
+    float floatParam2{0.0f};      // Additional float parameter
+    bool boolParam{false};        // Flags (instant effect, etc.)
     
     // For dialog actions
     std::vector<DialogLine> dialogLines;
+    
+    // For chained actions
+    std::vector<SceneAction> chainedActions;
 };
 
 struct SceneTrigger {
@@ -184,6 +206,30 @@ namespace SceneBuilder {
     SceneAction createShowTextAction(const std::string& text, float duration);
     SceneAction createGiveItemAction(const std::string& itemId, int quantity);
     SceneAction createCompleteQuestAction(const std::string& questId);
+    
+    // Combat and action helpers
+    SceneAction createAttackAction(const std::string& entityId, const std::string& targetId, 
+                                   const std::string& attackType = "melee", float duration = 1.0f);
+    SceneAction createCastSpellAction(const std::string& entityId, const std::string& spellName,
+                                     const std::string& targetId = "", const glm::vec3& targetPos = glm::vec3(0.0f));
+    SceneAction createUseAbilityAction(const std::string& entityId, const std::string& abilityName,
+                                       const std::string& targetId = "");
+    SceneAction createTakeDamageAction(const std::string& entityId, int damageAmount, 
+                                       const std::string& damageType = "physical");
+    SceneAction createDieAction(const std::string& entityId, const std::string& deathType = "normal");
+    SceneAction createShapeChangeAction(const std::string& entityId, const std::string& newForm,
+                                        float duration = 2.0f);
+    SceneAction createApplyStatusAction(const std::string& entityId, const std::string& statusName,
+                                        float duration = 10.0f);
+    SceneAction createAreaEffectAction(const std::string& effectType, const glm::vec3& position,
+                                       float radius, int power = 100);
+    SceneAction createDestroyEntityAction(const std::string& entityId, 
+                                          const std::string& destructionType = "vaporize");
+    SceneAction createHealAction(const std::string& entityId, int healAmount);
+    SceneAction createTeleportAction(const std::string& entityId, const glm::vec3& position);
+    SceneAction createKnockbackAction(const std::string& entityId, const glm::vec3& direction,
+                                      float force);
+    SceneAction createChainedAction(const std::vector<SceneAction>& actions);
 }
 
 } // namespace scripting
