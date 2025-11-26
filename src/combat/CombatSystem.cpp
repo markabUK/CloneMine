@@ -3,8 +3,10 @@
 #include <cmath>
 #include <iostream>
 
+namespace clonemine {
+
 CombatSystem::CombatSystem() {
-    std::cout << "[CombatSystem] Initialized PvE combat system" << std::endl;
+    std::cout << "[CombatSystem] Initialized PvE combat system with EntityId support" << std::endl;
 }
 
 CombatSystem::~CombatSystem() = default;
@@ -12,7 +14,7 @@ CombatSystem::~CombatSystem() = default;
 void CombatSystem::update(float deltaTime) {
     auto currentTime = std::chrono::system_clock::now();
     
-    for (auto& [playerId, data] : m_playerCombatData) {
+    for (auto& [entityId, data] : m_entityCombatData) {
         // Update ability cooldowns
         for (auto& [slot, cooldown] : data.abilityCooldowns) {
             if (cooldown > 0.0f) {
@@ -21,8 +23,8 @@ void CombatSystem::update(float deltaTime) {
         }
 
         // Auto-attack processing
-        if (data.autoAttacking && !data.targetId.empty()) {
-            if (processAutoAttack(playerId, deltaTime)) {
+        if (data.autoAttacking && data.targetId.isValid()) {
+            if (processAutoAttack(entityId, deltaTime)) {
                 data.lastCombatTime = std::chrono::duration<float>(
                     currentTime.time_since_epoch()).count();
             }
@@ -34,74 +36,75 @@ void CombatSystem::update(float deltaTime) {
                 currentTime.time_since_epoch()).count() - data.lastCombatTime;
             
             if (timeSinceLastCombat >= COMBAT_TIMEOUT) {
-                leaveCombat(playerId);
+                leaveCombat(entityId);
             }
         }
     }
 }
 
-void CombatSystem::enterCombat(const std::string& playerId) {
-    auto& data = m_playerCombatData[playerId];
+void CombatSystem::enterCombat(const EntityId& entityId) {
+    auto& data = m_entityCombatData[entityId];
     if (data.state != CombatState::IN_COMBAT) {
         data.state = CombatState::IN_COMBAT;
         data.lastCombatTime = std::chrono::duration<float>(
             std::chrono::system_clock::now().time_since_epoch()).count();
-        std::cout << "[Combat] Player " << playerId << " entered combat" << std::endl;
+        std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name << "' entered combat" << std::endl;
     }
 }
 
-void CombatSystem::leaveCombat(const std::string& playerId) {
-    auto it = m_playerCombatData.find(playerId);
-    if (it != m_playerCombatData.end()) {
+void CombatSystem::leaveCombat(const EntityId& entityId) {
+    auto it = m_entityCombatData.find(entityId);
+    if (it != m_entityCombatData.end()) {
         it->second.state = CombatState::OUT_OF_COMBAT;
         it->second.autoAttacking = false;
-        std::cout << "[Combat] Player " << playerId << " left combat" << std::endl;
+        std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name << "' left combat" << std::endl;
     }
 }
 
-bool CombatSystem::isInCombat(const std::string& playerId) const {
-    auto it = m_playerCombatData.find(playerId);
-    return it != m_playerCombatData.end() && it->second.state == CombatState::IN_COMBAT;
+bool CombatSystem::isInCombat(const EntityId& entityId) const {
+    auto it = m_entityCombatData.find(entityId);
+    return it != m_entityCombatData.end() && it->second.state == CombatState::IN_COMBAT;
 }
 
-void CombatSystem::setTarget(const std::string& playerId, const std::string& targetId) {
-    m_playerCombatData[playerId].targetId = targetId;
-    std::cout << "[Combat] Player " << playerId << " targeted " << targetId << std::endl;
+void CombatSystem::setTarget(const EntityId& attackerId, const EntityId& targetId) {
+    m_entityCombatData[attackerId].targetId = targetId;
+    std::cout << "[Combat] " << entityTypeToString(attackerId.type) << " '" << attackerId.name 
+              << "' targeted " << entityTypeToString(targetId.type) << " '" << targetId.name << "'" << std::endl;
 }
 
-std::string CombatSystem::getTarget(const std::string& playerId) const {
-    auto it = m_playerCombatData.find(playerId);
-    return it != m_playerCombatData.end() ? it->second.targetId : "";
+EntityId CombatSystem::getTarget(const EntityId& attackerId) const {
+    auto it = m_entityCombatData.find(attackerId);
+    return it != m_entityCombatData.end() ? it->second.targetId : EntityId();
 }
 
-void CombatSystem::clearTarget(const std::string& playerId) {
-    auto it = m_playerCombatData.find(playerId);
-    if (it != m_playerCombatData.end()) {
-        it->second.targetId.clear();
+void CombatSystem::clearTarget(const EntityId& attackerId) {
+    auto it = m_entityCombatData.find(attackerId);
+    if (it != m_entityCombatData.end()) {
+        it->second.targetId = EntityId();
     }
 }
 
-void CombatSystem::startAutoAttack(const std::string& playerId) {
-    auto& data = m_playerCombatData[playerId];
+void CombatSystem::startAutoAttack(const EntityId& attackerId) {
+    auto& data = m_entityCombatData[attackerId];
     data.autoAttacking = true;
     data.autoAttackTimer = 0.0f;
 }
 
-void CombatSystem::stopAutoAttack(const std::string& playerId) {
-    auto it = m_playerCombatData.find(playerId);
-    if (it != m_playerCombatData.end()) {
+void CombatSystem::stopAutoAttack(const EntityId& attackerId) {
+    auto it = m_entityCombatData.find(attackerId);
+    if (it != m_entityCombatData.end()) {
         it->second.autoAttacking = false;
     }
 }
 
-bool CombatSystem::processAutoAttack(const std::string& playerId, float deltaTime) {
-    auto& data = m_playerCombatData[playerId];
+bool CombatSystem::processAutoAttack(const EntityId& attackerId, float deltaTime) {
+    auto& data = m_entityCombatData[attackerId];
     
-    if (data.targetId.empty()) {
+    if (!data.targetId.isValid()) {
         return false;
     }
 
-    if (!isInRange(playerId, data.targetId)) {
+    if (!isInRange(attackerId, data.targetId)) {
         return false;
     }
 
@@ -112,10 +115,10 @@ bool CombatSystem::processAutoAttack(const std::string& playerId, float deltaTim
         
         // TODO: Get weapon damage from player equipment
         float baseDamage = 50.0f;
-        float damage = calculateDamage(playerId, data.targetId, baseDamage, DamageType::PHYSICAL);
+        float damage = calculateDamage(attackerId, data.targetId, baseDamage, DamageType::PHYSICAL);
         
-        applyDamage(data.targetId, damage, playerId);
-        enterCombat(playerId);
+        applyDamage(data.targetId, damage, attackerId);
+        enterCombat(attackerId);
         
         return true;
     }
@@ -123,15 +126,15 @@ bool CombatSystem::processAutoAttack(const std::string& playerId, float deltaTim
     return false;
 }
 
-bool CombatSystem::useAbility(const std::string& playerId, int abilitySlot) {
-    auto& data = m_playerCombatData[playerId];
+bool CombatSystem::useAbility(const EntityId& entityId, int abilitySlot) {
+    auto& data = m_entityCombatData[entityId];
     
     // Check if ability is on cooldown
-    if (!isAbilityReady(playerId, abilitySlot)) {
+    if (!isAbilityReady(entityId, abilitySlot)) {
         return false;
     }
 
-    if (data.targetId.empty()) {
+    if (!data.targetId.isValid()) {
         return false;
     }
 
@@ -141,17 +144,18 @@ bool CombatSystem::useAbility(const std::string& playerId, int abilitySlot) {
     
     data.abilityCooldowns[abilitySlot] = abilityCooldown;
     
-    float damage = calculateDamage(playerId, data.targetId, abilityDamage, DamageType::MAGICAL);
-    applyDamage(data.targetId, damage, playerId);
-    enterCombat(playerId);
+    float damage = calculateDamage(entityId, data.targetId, abilityDamage, DamageType::MAGICAL);
+    applyDamage(data.targetId, damage, entityId);
+    enterCombat(entityId);
     
-    std::cout << "[Combat] Player " << playerId << " used ability " << abilitySlot << std::endl;
+    std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name 
+              << "' used ability " << abilitySlot << std::endl;
     return true;
 }
 
-bool CombatSystem::isAbilityReady(const std::string& playerId, int abilitySlot) const {
-    auto it = m_playerCombatData.find(playerId);
-    if (it == m_playerCombatData.end()) {
+bool CombatSystem::isAbilityReady(const EntityId& entityId, int abilitySlot) const {
+    auto it = m_entityCombatData.find(entityId);
+    if (it == m_entityCombatData.end()) {
         return true;
     }
     
@@ -159,9 +163,9 @@ bool CombatSystem::isAbilityReady(const std::string& playerId, int abilitySlot) 
     return cdIt == it->second.abilityCooldowns.end() || cdIt->second <= 0.0f;
 }
 
-float CombatSystem::getAbilityCooldown(const std::string& playerId, int abilitySlot) const {
-    auto it = m_playerCombatData.find(playerId);
-    if (it == m_playerCombatData.end()) {
+float CombatSystem::getAbilityCooldown(const EntityId& entityId, int abilitySlot) const {
+    auto it = m_entityCombatData.find(entityId);
+    if (it == m_entityCombatData.end()) {
         return 0.0f;
     }
     
@@ -169,7 +173,7 @@ float CombatSystem::getAbilityCooldown(const std::string& playerId, int abilityS
     return cdIt != it->second.abilityCooldowns.end() ? std::max(0.0f, cdIt->second) : 0.0f;
 }
 
-float CombatSystem::calculateDamage(const std::string& attackerId, const std::string& targetId, 
+float CombatSystem::calculateDamage(const EntityId& attackerId, const EntityId& targetId, 
                                    float baseDamage, DamageType type) {
     // TODO: Get attacker's stats from player/monster data
     float attackPower = 100.0f; // Placeholder
@@ -205,53 +209,62 @@ float CombatSystem::calculateDamage(const std::string& attackerId, const std::st
     return damage;
 }
 
-void CombatSystem::applyDamage(const std::string& targetId, float damage, const std::string& sourceId) {
+void CombatSystem::applyDamage(const EntityId& targetId, float damage, const EntityId& sourceId) {
     // Check if target is invulnerable
     if (isInvulnerable(targetId)) {
-        std::cout << "[Combat] Target " << targetId << " is invulnerable, damage ignored" << std::endl;
+        std::cout << "[Combat] " << entityTypeToString(targetId.type) << " '" << targetId.name 
+                  << "' is invulnerable, damage ignored" << std::endl;
         return;
     }
     
     // TODO: Integrate with Player/Monster health system
-    std::cout << "[Combat] " << sourceId << " dealt " << damage << " damage to " << targetId << std::endl;
+    std::cout << "[Combat] " << entityTypeToString(sourceId.type) << " '" << sourceId.name 
+              << "' dealt " << damage << " damage to " << entityTypeToString(targetId.type) 
+              << " '" << targetId.name << "'" << std::endl;
     
     // Enter combat for both parties
     const_cast<CombatSystem*>(this)->enterCombat(targetId);
     const_cast<CombatSystem*>(this)->enterCombat(sourceId);
 }
 
-void CombatSystem::applyHealing(const std::string& targetId, float amount, const std::string& sourceId) {
+void CombatSystem::applyHealing(const EntityId& targetId, float amount, const EntityId& sourceId) {
     // TODO: Integrate with Player/Monster health system
-    std::cout << "[Combat] " << sourceId << " healed " << targetId << " for " << amount << std::endl;
+    std::cout << "[Combat] " << entityTypeToString(sourceId.type) << " '" << sourceId.name 
+              << "' healed " << entityTypeToString(targetId.type) << " '" << targetId.name 
+              << "' for " << amount << std::endl;
 }
 
-void CombatSystem::handleDeath(const std::string& playerId) {
-    auto& data = m_playerCombatData[playerId];
+void CombatSystem::handleDeath(const EntityId& entityId) {
+    auto& data = m_entityCombatData[entityId];
     data.state = CombatState::DEAD;
     data.autoAttacking = false;
-    data.targetId.clear();
+    data.targetId = EntityId();
     
-    std::cout << "[Combat] Player " << playerId << " died" << std::endl;
+    std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name << "' died" << std::endl;
     // TODO: Drop to ghost form, show respawn UI
 }
 
-void CombatSystem::respawn(const std::string& playerId) {
-    auto& data = m_playerCombatData[playerId];
+void CombatSystem::respawn(const EntityId& entityId) {
+    auto& data = m_entityCombatData[entityId];
     data.state = CombatState::OUT_OF_COMBAT;
     
-    // TODO: Restore player to spawn point with partial health/mana
-    std::cout << "[Combat] Player " << playerId << " respawned" << std::endl;
+    // TODO: Restore entity to spawn point with partial health/mana
+    std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name << "' respawned" << std::endl;
 }
 
-void CombatSystem::awardExperience(const std::string& playerId, int experience) {
+void CombatSystem::awardExperience(const EntityId& playerId, int experience) {
+    // Only players receive experience
+    if (playerId.type != EntityType::PLAYER) {
+        return;
+    }
     // TODO: Integrate with character progression system
-    std::cout << "[Combat] Player " << playerId << " gained " << experience << " XP" << std::endl;
+    std::cout << "[Combat] Player '" << playerId.name << "' gained " << experience << " XP" << std::endl;
 }
 
-void CombatSystem::distributeLoot(const std::string& monsterId, const std::vector<std::string>& playerIds) {
+void CombatSystem::distributeLoot(const EntityId& monsterId, const std::vector<EntityId>& playerIds) {
     // TODO: Generate loot from monster loot table
     // TODO: Distribute to players based on participation
-    std::cout << "[Combat] Distributing loot from " << monsterId << " to " << playerIds.size() << " players" << std::endl;
+    std::cout << "[Combat] Distributing loot from monster '" << monsterId.name << "' to " << playerIds.size() << " players" << std::endl;
 }
 
 void CombatSystem::addCombatEvent(const CombatEvent& event) {
@@ -263,25 +276,25 @@ void CombatSystem::addCombatEvent(const CombatEvent& event) {
     }
 }
 
-std::vector<CombatEvent> CombatSystem::getCombatLog(const std::string& playerId, int maxEvents) const {
-    std::vector<CombatEvent> playerLog;
+std::vector<CombatEvent> CombatSystem::getCombatLog(const EntityId& entityId, int maxEvents) const {
+    std::vector<CombatEvent> entityLog;
     
-    for (auto it = m_combatLog.rbegin(); it != m_combatLog.rend() && playerLog.size() < static_cast<size_t>(maxEvents); ++it) {
-        if (it->attackerId == playerId || it->targetId == playerId) {
-            playerLog.push_back(*it);
+    for (auto it = m_combatLog.rbegin(); it != m_combatLog.rend() && entityLog.size() < static_cast<size_t>(maxEvents); ++it) {
+        if (it->attackerId == entityId || it->targetId == entityId) {
+            entityLog.push_back(*it);
         }
     }
     
-    return playerLog;
+    return entityLog;
 }
 
-bool CombatSystem::isInRange(const std::string& playerId, const std::string& targetId) const {
+bool CombatSystem::isInRange(const EntityId& attackerId, const EntityId& targetId) const {
     // TODO: Get actual positions from game world
     // For now, assume always in range
     return true;
 }
 
-bool CombatSystem::hasLineOfSight(const std::string& playerId, const std::string& targetId) const {
+bool CombatSystem::hasLineOfSight(const EntityId& attackerId, const EntityId& targetId) const {
     // TODO: Implement raycasting for line of sight
     return true;
 }
@@ -298,17 +311,21 @@ bool CombatSystem::rollCritical(float critChance) const {
     return dis(gen) < critChance;
 }
 
-void CombatSystem::setInvulnerable(const std::string& entityId, bool invulnerable) {
+void CombatSystem::setInvulnerable(const EntityId& entityId, bool invulnerable) {
     if (invulnerable) {
         m_invulnerableEntities[entityId] = true;
-        std::cout << "[Combat] Entity " << entityId << " is now INVULNERABLE" << std::endl;
+        std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name 
+                  << "' is now INVULNERABLE" << std::endl;
     } else {
         m_invulnerableEntities.erase(entityId);
-        std::cout << "[Combat] Entity " << entityId << " is now VULNERABLE" << std::endl;
+        std::cout << "[Combat] " << entityTypeToString(entityId.type) << " '" << entityId.name 
+                  << "' is now VULNERABLE" << std::endl;
     }
 }
 
-bool CombatSystem::isInvulnerable(const std::string& entityId) const {
+bool CombatSystem::isInvulnerable(const EntityId& entityId) const {
     auto it = m_invulnerableEntities.find(entityId);
     return it != m_invulnerableEntities.end() && it->second;
 }
+
+} // namespace clonemine

@@ -1,7 +1,10 @@
 -- Example scripted scene: Epic Wizard Duel
 -- Demonstrates chained combat actions, spell casting, and special death effects
 -- Triggered when player talks to the Evil Wizard NPC
--- Note: Replace "PlayerCharacterName" with the actual character name
+-- 
+-- Entity Types: Use "player" for player characters, "monster" for monsters/enemies
+-- Format: entityType can be "player", "monster", or "npc"
+-- This allows distinguishing between a player named "Lich" and a monster named "Lich"
 
 local scene = SceneManager:createScene("wizard_duel")
 
@@ -25,12 +28,15 @@ SceneManager:addAction(scene, {
     duration = 1.0
 })
 
--- Wizard casts fireball at player (use actual character name)
+-- Wizard casts fireball at player
+-- entityType = "monster" to specify this is a monster entity
 SceneManager:addAction(scene, {
     type = "CAST_SPELL",
-    stringParam = "evil_wizard",      -- caster entity ID
+    stringParam = "evil_wizard",      -- caster name
+    entityType = "monster",           -- caster is a monster
     stringParam2 = "fireball",        -- spell name
-    vec3Param = {x = 0, y = 0, z = 0}, -- target position (player)
+    targetEntityType = "player",      -- target is a player
+    vec3Param = {x = 0, y = 0, z = 0}, -- target position
     duration = 2.0
 })
 
@@ -47,10 +53,12 @@ SceneManager:addAction(scene, {
     duration = 1.0
 })
 
--- Player takes damage (use actual character name)
+-- Player takes damage
+-- entityType = "player" to specify this is a player entity
 SceneManager:addAction(scene, {
     type = "TAKE_DAMAGE",
     stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    entityType = "player",                -- this is a player entity
     stringParam2 = "fire",
     intParam = 50,  -- damage amount
     duration = 0.5
@@ -69,11 +77,13 @@ SceneManager:addAction(scene, {
     duration = 1.5
 })
 
--- Player retaliates with attack (use actual character name)
+-- Player retaliates with attack
 SceneManager:addAction(scene, {
     type = "ATTACK",
     stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    entityType = "player",                -- attacker is a player
     stringParam2 = "evil_wizard",
+    targetEntityType = "monster",         -- target is a monster
     duration = 1.0
 })
 
@@ -88,6 +98,7 @@ SceneManager:addAction(scene, {
 SceneManager:addAction(scene, {
     type = "TAKE_DAMAGE",
     stringParam = "evil_wizard",
+    entityType = "monster",         -- monster entity
     stringParam2 = "physical",
     intParam = 30,
     duration = 0.5
@@ -104,11 +115,13 @@ SceneManager:addAction(scene, {
     }}
 })
 
--- Wizard casts disintegration spell
+-- Wizard casts disintegration spell at a weak goblin
 SceneManager:addAction(scene, {
     type = "CAST_SPELL",
     stringParam = "evil_wizard",
+    entityType = "monster",               -- caster is a monster
     stringParam2 = "disintegration",
+    targetEntityType = "monster",         -- target is also a monster (the goblin)
     vec3Param = {x = -5, y = 0, z = -5},  -- targets a nearby weak enemy
     duration = 3.0
 })
@@ -143,11 +156,12 @@ SceneManager:addAction(scene, {
     duration = 0.1
 })
 
--- Weak enemy gets vaporized
+-- Weak goblin (a monster) gets vaporized
 SceneManager:addAction(scene, {
     type = "DESTROY_ENTITY",
     stringParam = "weak_goblin",
-    stringParam2 = "vaporize",  -- destruction type
+    entityType = "monster",         -- goblin is a monster entity
+    stringParam2 = "vaporize",      -- destruction type
     duration = 1.0
 })
 
@@ -164,42 +178,50 @@ SceneManager:addAction(scene, {
     duration = 1.0
 })
 
--- Player uses special ability (use actual character name)
+-- Player uses special ability
 SceneManager:addAction(scene, {
     type = "USE_ABILITY",
     stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    entityType = "player",                -- player entity
     stringParam2 = "berserk_rage",
     duration = 1.5
 })
 
--- Apply buff to player (use actual character name)
+-- Apply buff to player
 SceneManager:addAction(scene, {
     type = "APPLY_STATUS",
     stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    entityType = "player",                -- player entity
     stringParam2 = "berserk",
     floatParam = 10.0,  -- status duration
     duration = 0.5
 })
 
--- Chain of attacks while buffed (use actual character name)
+-- Chain of attacks while buffed (player attacks monster)
 SceneManager:addAction(scene, {
     type = "ATTACK",
     stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    entityType = "player",
     stringParam2 = "evil_wizard",
+    targetEntityType = "monster",
     duration = 0.5
 })
 
 SceneManager:addAction(scene, {
     type = "ATTACK",
-    stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    stringParam = "PlayerCharacterName",
+    entityType = "player",
     stringParam2 = "evil_wizard",
+    targetEntityType = "monster",
     duration = 0.5
 })
 
 SceneManager:addAction(scene, {
     type = "ATTACK",
-    stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    stringParam = "PlayerCharacterName",
+    entityType = "player",
     stringParam2 = "evil_wizard",
+    targetEntityType = "monster",
     duration = 0.5
 })
 
@@ -214,6 +236,7 @@ SceneManager:addAction(scene, {
 SceneManager:addAction(scene, {
     type = "TAKE_DAMAGE",
     stringParam = "evil_wizard",
+    entityType = "monster",
     stringParam2 = "physical",
     intParam = 150,
     duration = 0.5
@@ -230,11 +253,12 @@ SceneManager:addAction(scene, {
     }}
 })
 
--- Wizard dies
+-- Wizard dies (monster death)
 SceneManager:addAction(scene, {
     type = "DIE",
     stringParam = "evil_wizard",
-    stringParam2 = "explode",  -- death type
+    entityType = "monster",         -- monster entity dies
+    stringParam2 = "explode",       -- death type
     duration = 2.0
 })
 
@@ -262,10 +286,11 @@ SceneManager:addAction(scene, {
     duration = 4.0
 })
 
--- Remove berserk status (use actual character name)
+-- Remove berserk status from player
 SceneManager:addAction(scene, {
     type = "REMOVE_STATUS",
     stringParam = "PlayerCharacterName",  -- Replace with actual character name
+    entityType = "player",
     stringParam2 = "berserk",
     duration = 0.5
 })
@@ -292,4 +317,4 @@ SceneManager:addAction(scene, {
     duration = 4.0
 })
 
-print("Loaded scene: wizard_duel")
+print("Loaded scene: wizard_duel (with EntityType support)")

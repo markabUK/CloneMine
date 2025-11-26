@@ -5,6 +5,7 @@
 #include <memory>
 #include <functional>
 #include <glm/glm.hpp>
+#include "../core/EntityId.h"
 
 // Forward declarations
 struct lua_State;
@@ -71,8 +72,10 @@ struct DialogLine {
 struct SceneAction {
     SceneActionType type;
     float duration{0.0f};
-    std::string stringParam;      // Entity ID, spell name, ability name, etc.
-    std::string stringParam2;     // Target entity ID, effect type, etc.
+    std::string stringParam;      // Entity name (use with entityType for full ID)
+    std::string stringParam2;     // Target entity name (use with targetEntityType for full ID)
+    EntityType entityType{EntityType::UNKNOWN};       // Type of primary entity
+    EntityType targetEntityType{EntityType::UNKNOWN}; // Type of target entity
     glm::vec3 vec3Param{0.0f};    // Position, direction, color
     glm::vec3 vec3Param2{0.0f};   // Additional position/vector data
     int intParam{0};              // Damage amount, status ID, etc.
@@ -85,6 +88,16 @@ struct SceneAction {
     
     // For chained actions
     std::vector<SceneAction> chainedActions;
+    
+    // Helper to get full EntityId for primary entity
+    [[nodiscard]] EntityId getEntityId() const {
+        return EntityId(stringParam, entityType);
+    }
+    
+    // Helper to get full EntityId for target entity
+    [[nodiscard]] EntityId getTargetEntityId() const {
+        return EntityId(stringParam2, targetEntityType);
+    }
 };
 
 struct SceneTrigger {
@@ -208,31 +221,38 @@ namespace SceneBuilder {
     SceneAction createGiveItemAction(const std::string& itemId, int quantity);
     SceneAction createCompleteQuestAction(const std::string& questId);
     
-    // Combat and action helpers
-    SceneAction createAttackAction(const std::string& entityId, const std::string& targetId, 
+    // Combat and action helpers - now with EntityType for disambiguation
+    // Use EntityType::PLAYER for player characters, EntityType::MONSTER for monsters, etc.
+    SceneAction createAttackAction(const std::string& entityId, EntityType entityType,
+                                   const std::string& targetId, EntityType targetType,
                                    const std::string& attackType = "melee", float duration = 1.0f);
-    SceneAction createCastSpellAction(const std::string& entityId, const std::string& spellName,
-                                     const std::string& targetId = "", const glm::vec3& targetPos = glm::vec3(0.0f));
-    SceneAction createUseAbilityAction(const std::string& entityId, const std::string& abilityName,
-                                       const std::string& targetId = "");
-    SceneAction createTakeDamageAction(const std::string& entityId, int damageAmount, 
-                                       const std::string& damageType = "physical");
-    SceneAction createDieAction(const std::string& entityId, const std::string& deathType = "normal");
-    SceneAction createShapeChangeAction(const std::string& entityId, const std::string& newForm,
-                                        float duration = 2.0f);
-    SceneAction createApplyStatusAction(const std::string& entityId, const std::string& statusName,
-                                        float duration = 10.0f);
+    SceneAction createCastSpellAction(const std::string& entityId, EntityType entityType,
+                                      const std::string& spellName,
+                                      const std::string& targetId = "", EntityType targetType = EntityType::UNKNOWN,
+                                      const glm::vec3& targetPos = glm::vec3(0.0f));
+    SceneAction createUseAbilityAction(const std::string& entityId, EntityType entityType,
+                                       const std::string& abilityName,
+                                       const std::string& targetId = "", EntityType targetType = EntityType::UNKNOWN);
+    SceneAction createTakeDamageAction(const std::string& entityId, EntityType entityType,
+                                       int damageAmount, const std::string& damageType = "physical");
+    SceneAction createDieAction(const std::string& entityId, EntityType entityType,
+                                const std::string& deathType = "normal");
+    SceneAction createShapeChangeAction(const std::string& entityId, EntityType entityType,
+                                        const std::string& newForm, float duration = 2.0f);
+    SceneAction createApplyStatusAction(const std::string& entityId, EntityType entityType,
+                                        const std::string& statusName, float duration = 10.0f);
     SceneAction createAreaEffectAction(const std::string& effectType, const glm::vec3& position,
                                        float radius, int power = 100);
-    SceneAction createDestroyEntityAction(const std::string& entityId, 
+    SceneAction createDestroyEntityAction(const std::string& entityId, EntityType entityType,
                                           const std::string& destructionType = "vaporize");
-    SceneAction createHealAction(const std::string& entityId, int healAmount);
-    SceneAction createTeleportAction(const std::string& entityId, const glm::vec3& position);
-    SceneAction createKnockbackAction(const std::string& entityId, const glm::vec3& direction,
-                                      float force);
+    SceneAction createHealAction(const std::string& entityId, EntityType entityType, int healAmount);
+    SceneAction createTeleportAction(const std::string& entityId, EntityType entityType,
+                                     const glm::vec3& position);
+    SceneAction createKnockbackAction(const std::string& entityId, EntityType entityType,
+                                      const glm::vec3& direction, float force);
     SceneAction createChainedAction(const std::vector<SceneAction>& actions);
-    SceneAction createSetInvulnerableAction(const std::string& entityId, bool invulnerable, 
-                                            float duration = 0.0f);
+    SceneAction createSetInvulnerableAction(const std::string& entityId, EntityType entityType,
+                                            bool invulnerable, float duration = 0.0f);
 }
 
 } // namespace scripting
