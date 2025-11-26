@@ -1,8 +1,17 @@
 #include "ServerPlayer.h"
 #include <iostream>
+#include <chrono>
 
 namespace clonemine {
 namespace server {
+
+namespace {
+    float getCurrentTimeSeconds() {
+        auto now = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+        return static_cast<float>(duration.count()) / 1000.0f;
+    }
+}
 
 ServerPlayer::ServerPlayer(uint32_t id, std::shared_ptr<asio::ip::tcp::socket> socket)
     : m_id(id)
@@ -50,6 +59,38 @@ void ServerPlayer::disconnect() {
         } catch (const std::exception& e) {
             std::cerr << "Error disconnecting player " << m_id << ": " << e.what() << std::endl;
         }
+    }
+}
+
+void ServerPlayer::startDisconnectGracePeriod() {
+    if (!m_inGracePeriod) {
+        m_inGracePeriod = true;
+        m_gracePeriodStart = getCurrentTimeSeconds();
+        std::cout << "Player " << m_id << " (" << m_name << ") starting 15-second disconnect grace period" << std::endl;
+    }
+}
+
+bool ServerPlayer::hasGracePeriodExpired() const {
+    if (!m_inGracePeriod) {
+        return false;
+    }
+    return (getCurrentTimeSeconds() - m_gracePeriodStart) >= DISCONNECT_GRACE_PERIOD;
+}
+
+float ServerPlayer::getGracePeriodRemaining() const {
+    if (!m_inGracePeriod) {
+        return DISCONNECT_GRACE_PERIOD;
+    }
+    float elapsed = getCurrentTimeSeconds() - m_gracePeriodStart;
+    float remaining = DISCONNECT_GRACE_PERIOD - elapsed;
+    return remaining > 0 ? remaining : 0;
+}
+
+void ServerPlayer::cancelGracePeriod() {
+    if (m_inGracePeriod) {
+        m_inGracePeriod = false;
+        m_gracePeriodStart = 0.0f;
+        std::cout << "Player " << m_id << " (" << m_name << ") grace period cancelled - reconnected" << std::endl;
     }
 }
 

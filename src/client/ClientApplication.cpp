@@ -15,6 +15,7 @@ ClientApplication::ClientApplication(std::string_view title, uint32_t width, uin
     , m_networkClient(std::make_unique<NetworkClient>())
     , m_loginScreen(std::make_unique<LoginScreen>())
     , m_characterSelectScreen(std::make_unique<CharacterSelectScreen>())
+    , m_currentScreen(ClientScreen::LOGIN) // Ensure we start at LOGIN screen
 {
     // Load plugins from the plugins directory
     m_pluginManager->loadPluginsFromDirectory("plugins");
@@ -25,8 +26,24 @@ ClientApplication::ClientApplication(std::string_view title, uint32_t width, uin
         handleNetworkMessage(data);
     });
     
+    // Set up login screen callback
+    m_loginScreen->setLoginCallback([this](const std::string& username, const std::string& sessionToken) {
+        onLoginSuccess(username, sessionToken);
+    });
+    
+    // Set up character select callbacks
+    m_characterSelectScreen->setSelectCallback([this](int index) {
+        onCharacterSelected(index);
+    });
+    
+    m_characterSelectScreen->setCancelCallback([this]() {
+        onCancelCharacterSelect();
+    });
+    
     // Initialize activity time
     recordActivity();
+    
+    std::cout << "Client started at Login Screen" << std::endl;
 }
 
 ClientApplication::~ClientApplication() = default;
@@ -59,6 +76,40 @@ void ClientApplication::shutdown() {
     m_running = false;
 }
 
+void ClientApplication::logout() {
+    std::cout << "Logging out - returning to login screen" << std::endl;
+    
+    // Disconnect from all servers
+    m_networkClient->disconnect();
+    
+    // Clear session data
+    m_sessionToken.clear();
+    m_characterName = "Player";
+    
+    // Return to login screen
+    switchToScreen(ClientScreen::LOGIN);
+}
+
+void ClientApplication::exitGame() {
+    std::cout << "Exiting game" << std::endl;
+    
+    // Disconnect from all servers
+    m_networkClient->disconnect();
+    
+    // Stop the application
+    m_running = false;
+}
+
+void ClientApplication::returnToCharacterSelect() {
+    std::cout << "Returning to character select" << std::endl;
+    
+    // Disconnect from game server
+    m_networkClient->disconnect();
+    
+    // Go to character select screen
+    switchToScreen(ClientScreen::CHARACTER_SELECT);
+}
+
 void ClientApplication::processInput() {
     // Update input state
     m_inputManager->update();
@@ -79,6 +130,15 @@ void ClientApplication::processInput() {
             break;
             
         case ClientScreen::GAME:
+            // Check for ESC key - logout options
+            if (m_inputManager->isKeyJustPressed(Key::ESCAPE)) {
+                // In a full implementation, this would open a menu
+                // For now, ESC returns to character select
+                std::cout << "ESC pressed - returning to character select" << std::endl;
+                returnToCharacterSelect();
+                return;
+            }
+            
             // Check for chat message send
             if (m_inputManager->isKeyJustPressed(Key::ENTER) && 
                 !m_inputManager->isChatMode() &&
@@ -478,6 +538,43 @@ float ClientApplication::getCurrentTime() const {
     auto now = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
     return static_cast<float>(duration.count());
+}
+
+// Screen callback implementations
+void ClientApplication::onLoginSuccess(const std::string& username, const std::string& sessionToken) {
+    std::cout << "Login successful for user: " << username << std::endl;
+    
+    // Store session token
+    m_sessionToken = sessionToken;
+    
+    // TODO: Connect to character server with session token
+    // For now, just switch to character select screen
+    
+    // Switch to character select screen
+    switchToScreen(ClientScreen::CHARACTER_SELECT);
+}
+
+void ClientApplication::onCharacterSelected(int characterIndex) {
+    std::cout << "Character selected: index " << characterIndex << std::endl;
+    
+    // TODO: Get character name from character list
+    // TODO: Connect to game server with character data
+    
+    // For now, switch to game screen
+    switchToScreen(ClientScreen::GAME);
+}
+
+void ClientApplication::onCancelCharacterSelect() {
+    std::cout << "Character selection cancelled - returning to login" << std::endl;
+    
+    // Disconnect from character server
+    m_networkClient->disconnect();
+    
+    // Clear session
+    m_sessionToken.clear();
+    
+    // Return to login screen
+    switchToScreen(ClientScreen::LOGIN);
 }
 
 } // namespace client

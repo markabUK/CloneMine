@@ -103,6 +103,17 @@ std::vector<uint8_t> PlayerSpawn::serialize() const {
     return buffer;
 }
 
+// PlayerDespawn implementation
+std::vector<uint8_t> PlayerDespawn::serialize() const {
+    std::vector<uint8_t> buffer;
+    buffer.reserve(getSize());
+    
+    buffer.push_back(static_cast<uint8_t>(type));
+    writeUint32(buffer, playerId);
+    
+    return buffer;
+}
+
 // ChatMessage implementation
 std::vector<uint8_t> ChatMessage::serialize() const {
     std::vector<uint8_t> buffer;

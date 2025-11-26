@@ -36,6 +36,11 @@ public:
         m_createCallback = callback;
     }
     
+    // Set callback for cancel/logout (ESC key)
+    void setCancelCallback(std::function<void()> callback) {
+        m_cancelCallback = callback;
+    }
+    
     // Get selected character index
     [[nodiscard]] int getSelectedIndex() const { return m_selectedIndex; }
     
@@ -57,10 +62,12 @@ private:
     
     std::function<void(int)> m_selectCallback;
     std::function<void(const std::string&)> m_createCallback;
+    std::function<void()> m_cancelCallback;
     
     void selectCharacter();
     void startCharacterCreation();
     void confirmCharacterCreation();
+    void cancelToLogin();
 };
 
 } // namespace client

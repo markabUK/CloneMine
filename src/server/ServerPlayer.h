@@ -32,6 +32,14 @@ public:
     bool isConnected() const { return m_connected; }
     void disconnect();
     
+    // Disconnect grace period (15 seconds)
+    void startDisconnectGracePeriod();
+    bool isInGracePeriod() const { return m_inGracePeriod; }
+    bool hasGracePeriodExpired() const;
+    float getGracePeriodRemaining() const;
+    void cancelGracePeriod(); // Called if player reconnects
+    bool shouldIgnoreActions() const { return m_inGracePeriod; }
+    
     // Update
     void update(float deltaTime);
     
@@ -41,6 +49,11 @@ private:
     Player m_player;
     std::shared_ptr<asio::ip::tcp::socket> m_socket;
     bool m_connected{true};
+    
+    // Disconnect grace period (15 seconds)
+    bool m_inGracePeriod{false};
+    float m_gracePeriodStart{0.0f};
+    static constexpr float DISCONNECT_GRACE_PERIOD = 15.0f; // 15 seconds
     
     // Encryption
     std::unique_ptr<network::PacketEncryption> m_encryption;

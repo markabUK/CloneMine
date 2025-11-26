@@ -114,6 +114,14 @@ struct PlayerSpawn : NetworkMessage {
     size_t getSize() const override { return sizeof(MessageType) + sizeof(uint32_t) + sizeof(glm::vec3) + sizeof(uint32_t) * 2 + playerName.size() + className.size(); }
 };
 
+// Player despawn notification (disconnect/logout)
+struct PlayerDespawn : NetworkMessage {
+    PlayerDespawn() { type = MessageType::PLAYER_DESPAWN; }
+    
+    std::vector<uint8_t> serialize() const override;
+    size_t getSize() const override { return sizeof(MessageType) + sizeof(uint32_t); }
+};
+
 // Chat message
 struct ChatMessage : NetworkMessage {
     std::string sender;

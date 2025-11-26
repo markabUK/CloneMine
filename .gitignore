@@ -12,3 +12,4 @@ server_saves/
 saves/
 *.log
 _codeql_build_dir/
+*.o

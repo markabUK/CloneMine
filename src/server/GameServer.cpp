@@ -212,22 +212,48 @@ void GameServer::updateGame(float deltaTime) {
     
     // Update all players
     std::vector<uint32_t> disconnectedPlayers;
+    std::vector<uint32_t> expiredGracePeriodPlayers;
     
     for (auto& [id, player] : m_players) {
+        // Check for disconnected players
         if (!player->isConnected()) {
-            disconnectedPlayers.push_back(id);
+            // Start grace period if not already in one
+            if (!player->isInGracePeriod()) {
+                player->startDisconnectGracePeriod();
+            }
+        }
+        
+        // Check if grace period has expired
+        if (player->isInGracePeriod() && player->hasGracePeriodExpired()) {
+            expiredGracePeriodPlayers.push_back(id);
             continue;
         }
         
-        player->update(deltaTime);
+        // Only update players that are not in grace period
+        if (!player->shouldIgnoreActions()) {
+            player->update(deltaTime);
+        }
     }
     
-    // Remove disconnected players
-    for (uint32_t id : disconnectedPlayers) {
+    // Remove players whose grace period has expired
+    for (uint32_t id : expiredGracePeriodPlayers) {
         auto it = m_players.find(id);
         if (it != m_players.end()) {
-            std::cout << "Player " << id << " (" << it->second->getName() << ") disconnected" << std::endl;
+            std::cout << "Player " << id << " (" << it->second->getName() 
+                      << ") grace period expired - logging out" << std::endl;
             savePlayerData(*it->second);
+            
+            // Broadcast player despawn
+            network::PlayerDespawn despawnMsg;
+            despawnMsg.playerId = id;
+            auto despawnData = despawnMsg.serialize();
+            
+            for (auto& [otherId, otherPlayer] : m_players) {
+                if (otherId != id && otherPlayer->isConnected()) {
+                    otherPlayer->sendData(despawnData);
+                }
+            }
+            
             m_players.erase(it);
         }
     }
@@ -236,7 +262,8 @@ void GameServer::updateGame(float deltaTime) {
 void GameServer::broadcastPlayerStates() {
     // Send state updates to all players
     for (auto& [id, player] : m_players) {
-        if (!player->isConnected()) {
+        // Skip players in grace period - they are being logged out
+        if (!player->isConnected() || player->shouldIgnoreActions()) {
             continue;
         }
         
@@ -257,9 +284,9 @@ void GameServer::broadcastPlayerStates() {
         
         auto data = update.serialize();
         
-        // Send to all other players
+        // Send to all other connected players (not in grace period)
         for (auto& [otherId, otherPlayer] : m_players) {
-            if (otherId != id && otherPlayer->isConnected()) {
+            if (otherId != id && otherPlayer->isConnected() && !otherPlayer->shouldIgnoreActions()) {
                 otherPlayer->sendData(data);
             }
         }

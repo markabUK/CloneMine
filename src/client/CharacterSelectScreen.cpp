@@ -120,5 +120,16 @@ void CharacterSelectScreen::confirmCharacterCreation() {
     recordActivity();
 }
 
+void CharacterSelectScreen::cancelToLogin() {
+    // Cancel character selection and return to login screen
+    std::cout << "Cancelling character selection - returning to login" << std::endl;
+    
+    if (m_cancelCallback) {
+        m_cancelCallback();
+    }
+    
+    recordActivity();
+}
+
 } // namespace client
 } // namespace clonemine

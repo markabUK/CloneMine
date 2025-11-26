@@ -48,6 +48,11 @@ public:
     [[nodiscard]] const std::string& getCharacterName() const { return m_characterName; }
     void run();
     void shutdown();
+    
+    // User actions
+    void logout();           // Return to login screen
+    void exitGame();         // Exit application
+    void returnToCharacterSelect(); // Go back to character select from game
 
     [[nodiscard]] bool isRunning() const noexcept { return m_running; }
 
@@ -65,6 +70,11 @@ private:
     void renderLoginScreen();
     void renderCharacterSelectScreen();
     void renderGameScreen();
+    
+    // Screen callbacks
+    void onLoginSuccess(const std::string& username, const std::string& sessionToken);
+    void onCharacterSelected(int characterIndex);
+    void onCancelCharacterSelect();
     
     // AFK detection
     void recordActivity();
@@ -95,6 +105,7 @@ private:
     
     // Character
     std::string m_characterName{"Player"}; // Character name from character server
+    std::string m_sessionToken;             // Session token from login server
     
     // Chat
     std::deque<ChatMessage> m_chatMessages;
