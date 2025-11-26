@@ -1,6 +1,7 @@
 #include "ServerPlayer.h"
 #include <iostream>
 #include <chrono>
+#include <glm/gtx/norm.hpp>
 
 namespace clonemine {
 namespace server {
@@ -97,6 +98,57 @@ void ServerPlayer::cancelGracePeriod() {
 void ServerPlayer::update(float deltaTime) {
     // Update player logic
     m_player.update(deltaTime);
+}
+
+void ServerPlayer::setDead(bool dead) {
+    if (dead && !m_isDead) {
+        // Player just died - save corpse location
+        m_isDead = true;
+        m_corpseLocation = m_player.getPosition();
+        std::cout << "Player " << m_id << " (" << m_name << ") died at position ("
+                  << m_corpseLocation.x << ", " << m_corpseLocation.y << ", " << m_corpseLocation.z << ")" << std::endl;
+    } else {
+        m_isDead = dead;
+    }
+}
+
+void ServerPlayer::becomeGhost() {
+    if (m_isDead) {
+        m_isGhost = true;
+        // Teleport to graveyard (or spawn point for now)
+        // Ghost can move but cannot interact with world
+        std::cout << "Player " << m_id << " (" << m_name << ") is now a ghost. Run back to corpse to resurrect." << std::endl;
+    }
+}
+
+void ServerPlayer::resurrect(bool atBody) {
+    if (!m_isDead && !m_isGhost) {
+        return; // Already alive
+    }
+    
+    m_isDead = false;
+    m_isGhost = false;
+    
+    if (atBody) {
+        // Resurrect at corpse location
+        m_player.setPosition(m_corpseLocation);
+        std::cout << "Player " << m_id << " (" << m_name << ") resurrected at corpse location" << std::endl;
+    } else {
+        // Resurrected by another player (stay at current location)
+        std::cout << "Player " << m_id << " (" << m_name << ") was resurrected by another player" << std::endl;
+    }
+    
+    // TODO: Set health to percentage (e.g., 50% after corpse run, 80% if resurrected by player)
+}
+
+bool ServerPlayer::isNearCorpse(float maxDistance) const {
+    if (!m_isGhost) {
+        return false;
+    }
+    
+    glm::vec3 currentPos = m_player.getPosition();
+    float distance = glm::length(currentPos - m_corpseLocation);
+    return distance <= maxDistance;
 }
 
 } // namespace server
