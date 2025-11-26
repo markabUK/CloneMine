@@ -13,6 +13,8 @@ set(COMMON_SOURCES
     combat/DamageCalculation.cpp
     audio/AudioManager.cpp
     scripting/ScriptedScene.cpp
+    combat/CombatSystem.cpp
+    trading/AuctionHouse.cpp
 )
 
 set(COMMON_HEADERS
@@ -33,6 +35,8 @@ set(COMMON_HEADERS
     audio/AudioManager.h
     scripting/ScriptedScene.h
     config/ServerConfig.h
+    combat/CombatSystem.h
+    trading/AuctionHouse.h
 )
 
 # Client-specific source files
@@ -121,12 +125,21 @@ set(CHARACTER_SERVER_HEADERS
     server/CharacterServer.h
 )
 
+# Auction server source files
+set(AUCTION_SERVER_SOURCES
+    auction_server_main.cpp
+)
+
+set(AUCTION_SERVER_HEADERS
+)
+
 # Always create server executables (no Vulkan dependency)
 add_executable(CloneMineServer ${SERVER_SOURCES} ${SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 add_executable(CloneMineChatServer ${CHAT_SERVER_SOURCES} ${CHAT_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 add_executable(CloneMineQuestServer ${QUEST_SERVER_SOURCES} ${QUEST_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 add_executable(CloneMineLoginServer ${LOGIN_SERVER_SOURCES} ${LOGIN_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 add_executable(CloneMineCharacterServer ${CHARACTER_SERVER_SOURCES} ${CHARACTER_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
+add_executable(CloneMineAuctionServer ${AUCTION_SERVER_SOURCES} ${AUCTION_SERVER_HEADERS} ${COMMON_SOURCES} ${COMMON_HEADERS})
 
 # Apply strict warnings to servers
 target_compile_options(CloneMineServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
@@ -134,6 +147,7 @@ target_compile_options(CloneMineChatServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 target_compile_options(CloneMineQuestServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 target_compile_options(CloneMineLoginServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 target_compile_options(CloneMineCharacterServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
+target_compile_options(CloneMineAuctionServer PRIVATE ${CLONEMINE_COMPILE_OPTIONS})
 
 # Include directories for servers
 target_include_directories(CloneMineServer PRIVATE
@@ -156,6 +170,10 @@ target_include_directories(CloneMineCharacterServer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
 )
+target_include_directories(CloneMineAuctionServer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../external/lua/src
+)
 
 # Link libraries for servers (no Vulkan or GLFW needed)
 target_link_libraries(CloneMineServer PRIVATE external_libs_server)
@@ -163,6 +181,7 @@ target_link_libraries(CloneMineChatServer PRIVATE external_libs_server)
 target_link_libraries(CloneMineQuestServer PRIVATE external_libs_server)
 target_link_libraries(CloneMineLoginServer PRIVATE external_libs_server)
 target_link_libraries(CloneMineCharacterServer PRIVATE external_libs_server)
+target_link_libraries(CloneMineAuctionServer PRIVATE external_libs_server)
 
 # Only create client executable if Vulkan is available
 if(Vulkan_FOUND)
