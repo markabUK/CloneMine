@@ -1,6 +1,8 @@
 #pragma once
 
 #include "NetworkClient.h"
+#include "LoginScreen.h"
+#include "CharacterSelectScreen.h"
 #include "../core/Window.h"
 #include "../core/InputManager.h"
 #include "../rendering/Renderer.h"
@@ -11,9 +13,16 @@
 #include <string_view>
 #include <unordered_map>
 #include <deque>
+#include <chrono>
 
 namespace clonemine {
 namespace client {
+
+enum class ClientScreen {
+    LOGIN,
+    CHARACTER_SELECT,
+    GAME
+};
 
 struct ChatMessage {
     std::string sender;
@@ -51,12 +60,29 @@ private:
     void sendChatMessage(const std::string& message);
     void updateChat(float deltaTime);
     
+    // Screen management
+    void switchToScreen(ClientScreen screen);
+    void renderLoginScreen();
+    void renderCharacterSelectScreen();
+    void renderGameScreen();
+    
+    // AFK detection
+    void recordActivity();
+    void checkAFKTimeout(float deltaTime);
+    void checkCharacterSelectTimeout(float deltaTime);
+    float getCurrentTime() const;
+    
     std::unique_ptr<Window> m_window;
     std::unique_ptr<InputManager> m_inputManager;
     std::unique_ptr<Renderer> m_renderer;
     std::unique_ptr<World> m_world;
     std::unique_ptr<PluginManager> m_pluginManager;
     std::unique_ptr<NetworkClient> m_networkClient;
+    
+    // Screen management
+    ClientScreen m_currentScreen{ClientScreen::LOGIN};
+    std::unique_ptr<LoginScreen> m_loginScreen;
+    std::unique_ptr<CharacterSelectScreen> m_characterSelectScreen;
     
     // Client-side players (for rendering other players)
     std::unordered_map<uint32_t, Player> m_remotePlayers;
@@ -73,6 +99,16 @@ private:
     // Chat
     std::deque<ChatMessage> m_chatMessages;
     const size_t MAX_CHAT_MESSAGES = 10;
+    
+    // AFK timeout system
+    float m_lastActivityTime{0.0f};
+    bool m_afkWarningActive{false};
+    float m_afkCountdown{0.0f};
+    
+    // Timeout constants
+    static constexpr float AFK_TIMEOUT = 3600.0f;        // 1 hour in seconds
+    static constexpr float AFK_WARNING_TIME = 30.0f;     // 30 second warning
+    static constexpr float CHARACTER_SELECT_TIMEOUT = 7200.0f; // 2 hours in seconds
     
     bool m_running{true};
     float m_inputSendTimer{0.0f};

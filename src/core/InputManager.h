@@ -55,6 +55,9 @@ public:
     [[nodiscard]] const std::string& getTypedText() const { return m_typedText; }
     void clearTypedText() { m_typedText.clear(); }
     
+    // Check if any input has occurred (for AFK detection)
+    [[nodiscard]] bool hasAnyInput() const;
+    
 private:
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);

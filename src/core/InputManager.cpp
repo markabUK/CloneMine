@@ -139,4 +139,23 @@ void InputManager::charCallback(GLFWwindow* window, unsigned int codepoint) {
     }
 }
 
+bool InputManager::hasAnyInput() const {
+    // Check if any keys were just pressed
+    if (!m_keysJustPressed.empty()) {
+        return true;
+    }
+    
+    // Check if mouse moved (ignore very small movements)
+    if (glm::length(m_mouseDelta) > 0.1f) {
+        return true;
+    }
+    
+    // Check if any mouse buttons were clicked
+    if (!m_mouseButtonsPressed.empty()) {
+        return true;
+    }
+    
+    return false;
+}
+
 } // namespace clonemine

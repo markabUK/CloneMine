@@ -40,6 +40,8 @@ set(CLIENT_SOURCES
     client_main.cpp
     client/ClientApplication.cpp
     client/NetworkClient.cpp
+    client/LoginScreen.cpp
+    client/CharacterSelectScreen.cpp
     core/Application.cpp
     core/Window.cpp
     core/InputManager.cpp
@@ -54,6 +56,8 @@ set(CLIENT_SOURCES
 set(CLIENT_HEADERS
     client/ClientApplication.h
     client/NetworkClient.h
+    client/LoginScreen.h
+    client/CharacterSelectScreen.h
     core/Application.h
     core/Window.h
     core/InputManager.h

@@ -13,6 +13,8 @@ ClientApplication::ClientApplication(std::string_view title, uint32_t width, uin
     , m_world(std::make_unique<World>())
     , m_pluginManager(std::make_unique<PluginManager>())
     , m_networkClient(std::make_unique<NetworkClient>())
+    , m_loginScreen(std::make_unique<LoginScreen>())
+    , m_characterSelectScreen(std::make_unique<CharacterSelectScreen>())
 {
     // Load plugins from the plugins directory
     m_pluginManager->loadPluginsFromDirectory("plugins");
@@ -22,6 +24,9 @@ ClientApplication::ClientApplication(std::string_view title, uint32_t width, uin
     m_networkClient->setMessageCallback([this](const std::vector<uint8_t>& data) {
         handleNetworkMessage(data);
     });
+    
+    // Initialize activity time
+    recordActivity();
 }
 
 ClientApplication::~ClientApplication() = default;
@@ -58,25 +63,43 @@ void ClientApplication::processInput() {
     // Update input state
     m_inputManager->update();
     
-    // Check for chat message send
-    if (m_inputManager->isKeyJustPressed(Key::ENTER) && 
-        !m_inputManager->isChatMode() &&
-        !m_inputManager->getTypedText().empty()) {
-        sendChatMessage(m_inputManager->getTypedText());
-        m_inputManager->clearTypedText();
+    // Record activity on any input (resets AFK timer)
+    if (m_inputManager->hasAnyInput()) {
+        recordActivity();
     }
     
-    // Update camera with mouse
-    if (!m_inputManager->isChatMode()) {
-        glm::vec2 mouseDelta = m_inputManager->getMouseDelta();
-        m_cameraYaw += mouseDelta.x * m_cameraSensitivity;
-        m_cameraPitch -= mouseDelta.y * m_cameraSensitivity;
-        
-        // Clamp pitch
-        m_cameraPitch = std::clamp(m_cameraPitch, -89.0f, 89.0f);
-        
-        // Update local player rotation
-        m_localPlayer.setRotation(m_cameraYaw, m_cameraPitch);
+    // Screen-specific input handling
+    switch (m_currentScreen) {
+        case ClientScreen::LOGIN:
+            m_loginScreen->processInput();
+            break;
+            
+        case ClientScreen::CHARACTER_SELECT:
+            m_characterSelectScreen->processInput();
+            break;
+            
+        case ClientScreen::GAME:
+            // Check for chat message send
+            if (m_inputManager->isKeyJustPressed(Key::ENTER) && 
+                !m_inputManager->isChatMode() &&
+                !m_inputManager->getTypedText().empty()) {
+                sendChatMessage(m_inputManager->getTypedText());
+                m_inputManager->clearTypedText();
+            }
+            
+            // Update camera with mouse
+            if (!m_inputManager->isChatMode()) {
+                glm::vec2 mouseDelta = m_inputManager->getMouseDelta();
+                m_cameraYaw += mouseDelta.x * m_cameraSensitivity;
+                m_cameraPitch -= mouseDelta.y * m_cameraSensitivity;
+                
+                // Clamp pitch
+                m_cameraPitch = std::clamp(m_cameraPitch, -89.0f, 89.0f);
+                
+                // Update local player rotation
+                m_localPlayer.setRotation(m_cameraYaw, m_cameraPitch);
+            }
+            break;
     }
     
     // Plugin callbacks for input
@@ -87,25 +110,42 @@ void ClientApplication::update(float deltaTime) {
     // Process network messages
     m_networkClient->processMessages();
     
-    // Update chat messages
-    updateChat(deltaTime);
-    
-    // Update local prediction
-    m_localPlayer.update(deltaTime);
-    
-    // Update remote players
-    for (auto& [id, player] : m_remotePlayers) {
-        player.update(deltaTime);
-    }
-    
-    // Update world (client-side prediction)
-    m_world->update(deltaTime);
-    
-    // Send player input to server
-    m_inputSendTimer += deltaTime;
-    if (m_inputSendTimer >= INPUT_SEND_RATE) {
-        m_inputSendTimer = 0.0f;
-        sendPlayerInput();
+    // Screen-specific updates
+    switch (m_currentScreen) {
+        case ClientScreen::LOGIN:
+            m_loginScreen->update(deltaTime);
+            break;
+            
+        case ClientScreen::CHARACTER_SELECT:
+            m_characterSelectScreen->update(deltaTime);
+            checkCharacterSelectTimeout(deltaTime);
+            break;
+            
+        case ClientScreen::GAME:
+            // Update chat messages
+            updateChat(deltaTime);
+            
+            // Update local prediction
+            m_localPlayer.update(deltaTime);
+            
+            // Update remote players
+            for (auto& [id, player] : m_remotePlayers) {
+                player.update(deltaTime);
+            }
+            
+            // Update world (client-side prediction)
+            m_world->update(deltaTime);
+            
+            // Send player input to server
+            m_inputSendTimer += deltaTime;
+            if (m_inputSendTimer >= INPUT_SEND_RATE) {
+                m_inputSendTimer = 0.0f;
+                sendPlayerInput();
+            }
+            
+            // Check AFK timeout
+            checkAFKTimeout(deltaTime);
+            break;
     }
     
     // Plugin update callbacks
@@ -118,15 +158,22 @@ void ClientApplication::render() {
         m_window->resetResizedFlag();
     }
 
-    m_renderer->beginFrame();
-    m_renderer->renderWorld(*m_world);
-    m_renderer->endFrame();
+    switch (m_currentScreen) {
+        case ClientScreen::LOGIN:
+            renderLoginScreen();
+            break;
+            
+        case ClientScreen::CHARACTER_SELECT:
+            renderCharacterSelectScreen();
+            break;
+            
+        case ClientScreen::GAME:
+            renderGameScreen();
+            break;
+    }
     
     // Plugin render callbacks
     m_pluginManager->callHook("onRender");
-    
-    // TODO: Render chat messages (would need UI system)
-    // For now, just log them
 }
 
 void ClientApplication::handleNetworkMessage(const std::vector<uint8_t>& data) {
@@ -313,6 +360,124 @@ void ClientApplication::updateChat(float deltaTime) {
             ++it;
         }
     }
+}
+
+// Screen management methods
+void ClientApplication::switchToScreen(ClientScreen screen) {
+    m_currentScreen = screen;
+    recordActivity(); // Reset activity timer on screen change
+    
+    // Reset screen states
+    switch (screen) {
+        case ClientScreen::LOGIN:
+            m_loginScreen->reset();
+            break;
+        case ClientScreen::CHARACTER_SELECT:
+            m_characterSelectScreen->reset();
+            break;
+        case ClientScreen::GAME:
+            m_afkWarningActive = false;
+            m_afkCountdown = 0.0f;
+            break;
+    }
+}
+
+void ClientApplication::renderLoginScreen() {
+    m_renderer->beginFrame();
+    // TODO: Render login UI
+    m_loginScreen->render();
+    m_renderer->endFrame();
+}
+
+void ClientApplication::renderCharacterSelectScreen() {
+    m_renderer->beginFrame();
+    // TODO: Render character select UI
+    m_characterSelectScreen->render();
+    m_renderer->endFrame();
+}
+
+void ClientApplication::renderGameScreen() {
+    m_renderer->beginFrame();
+    m_renderer->renderWorld(*m_world);
+    
+    // Render AFK warning if active
+    if (m_afkWarningActive) {
+        // TODO: Integrate with UI system
+        // For now, this is a placeholder
+        // In a real implementation, this would render large red text at screen center:
+        // "AFK Warning: You will be logged out in XX seconds"
+        std::cout << "=== AFK WARNING ===" << std::endl;
+        std::cout << "You will be logged out in " << static_cast<int>(m_afkCountdown) << " seconds" << std::endl;
+        std::cout << "===================" << std::endl;
+    }
+    
+    m_renderer->endFrame();
+    
+    // TODO: Render chat messages (would need UI system)
+}
+
+// AFK detection methods
+void ClientApplication::recordActivity() {
+    m_lastActivityTime = getCurrentTime();
+    
+    // Cancel AFK warning if active
+    if (m_afkWarningActive) {
+        m_afkWarningActive = false;
+        m_afkCountdown = 0.0f;
+        std::cout << "AFK warning cancelled - activity detected" << std::endl;
+    }
+}
+
+void ClientApplication::checkAFKTimeout(float deltaTime) {
+    float currentTime = getCurrentTime();
+    float timeSinceActivity = currentTime - m_lastActivityTime;
+    
+    // Check if player has been AFK for 1 hour
+    if (timeSinceActivity >= AFK_TIMEOUT) {
+        if (!m_afkWarningActive) {
+            // Start AFK warning countdown
+            m_afkWarningActive = true;
+            m_afkCountdown = AFK_WARNING_TIME;
+            std::cout << "AFK detected - starting 30 second countdown" << std::endl;
+        } else {
+            // Update countdown
+            m_afkCountdown -= deltaTime;
+            
+            // Check if countdown reached zero
+            if (m_afkCountdown <= 0.0f) {
+                std::cout << "AFK timeout - returning to character select" << std::endl;
+                
+                // Disconnect from game server
+                m_networkClient->disconnect();
+                
+                // Return to character select screen
+                switchToScreen(ClientScreen::CHARACTER_SELECT);
+            }
+        }
+    }
+}
+
+void ClientApplication::checkCharacterSelectTimeout(float deltaTime) {
+    float currentTime = getCurrentTime();
+    float timeSinceActivity = m_characterSelectScreen->getLastActivityTime();
+    float inactiveTime = currentTime - timeSinceActivity;
+    
+    // Check if no actions for 2 hours
+    if (inactiveTime >= CHARACTER_SELECT_TIMEOUT) {
+        std::cout << "Character select timeout - returning to login" << std::endl;
+        
+        // Disconnect from character server
+        m_networkClient->disconnect();
+        
+        // Return to login screen
+        switchToScreen(ClientScreen::LOGIN);
+    }
+}
+
+float ClientApplication::getCurrentTime() const {
+    auto now = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
+    return static_cast<float>(duration.count());
 }
 
 } // namespace client
