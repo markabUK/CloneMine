@@ -1,6 +1,7 @@
 -- Example scripted scene: Epic Wizard Duel
 -- Demonstrates chained combat actions, spell casting, and special death effects
 -- Triggered when player talks to the Evil Wizard NPC
+-- Note: Replace "PlayerCharacterName" with the actual character name
 
 local scene = SceneManager:createScene("wizard_duel")
 
@@ -24,7 +25,7 @@ SceneManager:addAction(scene, {
     duration = 1.0
 })
 
--- Wizard casts fireball at player
+-- Wizard casts fireball at player (use actual character name)
 SceneManager:addAction(scene, {
     type = "CAST_SPELL",
     stringParam = "evil_wizard",      -- caster entity ID
@@ -46,10 +47,10 @@ SceneManager:addAction(scene, {
     duration = 1.0
 })
 
--- Player takes damage
+-- Player takes damage (use actual character name)
 SceneManager:addAction(scene, {
     type = "TAKE_DAMAGE",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "fire",
     intParam = 50,  -- damage amount
     duration = 0.5
@@ -68,10 +69,10 @@ SceneManager:addAction(scene, {
     duration = 1.5
 })
 
--- Player retaliates with attack
+-- Player retaliates with attack (use actual character name)
 SceneManager:addAction(scene, {
     type = "ATTACK",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "evil_wizard",
     duration = 1.0
 })
@@ -163,41 +164,41 @@ SceneManager:addAction(scene, {
     duration = 1.0
 })
 
--- Player uses special ability
+-- Player uses special ability (use actual character name)
 SceneManager:addAction(scene, {
     type = "USE_ABILITY",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "berserk_rage",
     duration = 1.5
 })
 
--- Apply buff to player
+-- Apply buff to player (use actual character name)
 SceneManager:addAction(scene, {
     type = "APPLY_STATUS",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "berserk",
     floatParam = 10.0,  -- status duration
     duration = 0.5
 })
 
--- Chain of attacks while buffed
+-- Chain of attacks while buffed (use actual character name)
 SceneManager:addAction(scene, {
     type = "ATTACK",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "evil_wizard",
     duration = 0.5
 })
 
 SceneManager:addAction(scene, {
     type = "ATTACK",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "evil_wizard",
     duration = 0.5
 })
 
 SceneManager:addAction(scene, {
     type = "ATTACK",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "evil_wizard",
     duration = 0.5
 })
@@ -261,10 +262,10 @@ SceneManager:addAction(scene, {
     duration = 4.0
 })
 
--- Remove berserk status
+-- Remove berserk status (use actual character name)
 SceneManager:addAction(scene, {
     type = "REMOVE_STATUS",
-    stringParam = "player",
+    stringParam = "PlayerCharacterName",  -- Replace with actual character name
     stringParam2 = "berserk",
     duration = 0.5
 })

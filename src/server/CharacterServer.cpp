@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
+#include <algorithm>
 
 namespace clonemine {
 namespace server {
@@ -510,12 +511,21 @@ bool CharacterServer::createCharacter(uint32_t accountId, const character::Chara
     
     auto& account = accountIt->second;
     
+    // Check if character name is available (global uniqueness check)
+    if (!isCharacterNameAvailable(character.name)) {
+        std::cerr << "Character name '" << character.name << "' is already taken" << std::endl;
+        return false;
+    }
+    
     // Find available slot
     int slot = account.findAvailableSlot();
     if (slot < 0) {
         std::cerr << "No available character slots for account " << accountId << std::endl;
         return false;
     }
+    
+    // Reserve the character name
+    reserveCharacterName(character.name);
     
     // Add character
     account.characterSlots[slot].occupied = true;
@@ -538,6 +548,9 @@ bool CharacterServer::deleteCharacter(uint32_t accountId, uint32_t characterId) 
     // Find and delete character
     for (auto& slot : account.characterSlots) {
         if (slot.occupied && slot.character.characterId == characterId) {
+            // Release the character name so it can be reused
+            releaseCharacterName(slot.character.name);
+            
             slot.occupied = false;
             return true;
         }
@@ -727,6 +740,33 @@ void CharacterServer::sendCharacterData(uint32_t sessionId, uint32_t characterId
     } catch (...) {
         session->connected = false;
     }
+}
+
+// Character name uniqueness methods
+bool CharacterServer::isCharacterNameAvailable(const std::string& name) const {
+    // Convert to lowercase for case-insensitive check
+    std::string lowerName = name;
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+    
+    return m_usedCharacterNames.find(lowerName) == m_usedCharacterNames.end();
+}
+
+void CharacterServer::reserveCharacterName(const std::string& name) {
+    // Convert to lowercase for case-insensitive storage
+    std::string lowerName = name;
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+    
+    m_usedCharacterNames.insert(lowerName);
+    std::cout << "[CharacterServer] Reserved character name: " << name << std::endl;
+}
+
+void CharacterServer::releaseCharacterName(const std::string& name) {
+    // Convert to lowercase for case-insensitive removal
+    std::string lowerName = name;
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+    
+    m_usedCharacterNames.erase(lowerName);
+    std::cout << "[CharacterServer] Released character name: " << name << std::endl;
 }
 
 } // namespace server

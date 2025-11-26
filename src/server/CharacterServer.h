@@ -6,6 +6,7 @@
 #include <asio.hpp>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <thread>
 #include <atomic>
@@ -46,6 +47,11 @@ public:
     bool createCharacter(uint32_t accountId, const character::CharacterData& character);
     bool deleteCharacter(uint32_t accountId, uint32_t characterId);
     std::vector<character::CharacterData> getAccountCharacters(uint32_t accountId);
+    
+    // Character name uniqueness (global across all accounts)
+    bool isCharacterNameAvailable(const std::string& name) const;
+    void reserveCharacterName(const std::string& name);
+    void releaseCharacterName(const std::string& name);
     
     // Character state management (for game server)
     character::CharacterData* getCharacterState(uint32_t characterId);
@@ -88,6 +94,9 @@ private:
     std::mutex m_accountsMutex;
     uint32_t m_nextAccountId{1};
     uint32_t m_nextCharacterId{1};
+    
+    // Global character name registry (unique across all accounts)
+    std::unordered_set<std::string> m_usedCharacterNames;
     
     // Threading
     std::atomic<bool> m_running{false};

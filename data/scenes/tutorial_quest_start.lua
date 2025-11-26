@@ -1,5 +1,6 @@
 -- Example scripted scene: Tutorial Quest Start
 -- This scene is triggered when the player starts the tutorial quest
+-- Note: Replace "PlayerCharacterName" with the actual character name
 
 local scene = SceneManager:createScene("tutorial_quest_start")
 
@@ -39,13 +40,14 @@ SceneManager:addAction(scene, {
     }
 })
 
--- Player responds
+-- Player responds (use actual character name)
 SceneManager:addAction(scene, {
     type = "DIALOG",
     duration = 4.0,
+    entityId = "PlayerCharacterName",  -- Replace with actual character name
     dialogLines = {
         {
-            speakerName = "Player",
+            speakerName = "PlayerCharacterName",  -- Replace with actual character name
             text = "I'm ready to help!",
             audioFile = "tutorial/player_ready.ogg",
             displayTime = 4.0
