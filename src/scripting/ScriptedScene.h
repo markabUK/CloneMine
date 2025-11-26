@@ -57,7 +57,8 @@ enum class SceneActionType {
     HEAL,                // Heal entity
     TELEPORT,            // Teleport entity to position
     KNOCKBACK,           // Apply knockback force to entity
-    CHAIN_ACTIONS        // Execute multiple actions in sequence on same entity
+    CHAIN_ACTIONS,       // Execute multiple actions in sequence on same entity
+    SET_INVULNERABLE     // Make entity invulnerable (or vulnerable) during cutscene
 };
 
 struct DialogLine {
@@ -230,6 +231,8 @@ namespace SceneBuilder {
     SceneAction createKnockbackAction(const std::string& entityId, const glm::vec3& direction,
                                       float force);
     SceneAction createChainedAction(const std::vector<SceneAction>& actions);
+    SceneAction createSetInvulnerableAction(const std::string& entityId, bool invulnerable, 
+                                            float duration = 0.0f);
 }
 
 } // namespace scripting

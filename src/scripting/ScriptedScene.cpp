@@ -255,6 +255,13 @@ void ScriptedScene::executeAction(const SceneAction& action) {
             }
             break;
             
+        case SceneActionType::SET_INVULNERABLE:
+            std::cout << "[ScriptedScene] Setting entity '" << action.stringParam 
+                      << "' invulnerability to " << (action.boolParam ? "ON" : "OFF") << std::endl;
+            // TODO: Integrate with CombatSystem to set invulnerability
+            // combatSystem->setInvulnerable(action.stringParam, action.boolParam);
+            break;
+            
         default:
             break;
     }
@@ -684,6 +691,16 @@ SceneAction createChainedAction(const std::vector<SceneAction>& actions) {
         totalDuration += chainedAction.duration;
     }
     action.duration = totalDuration;
+    
+    return action;
+}
+
+SceneAction createSetInvulnerableAction(const std::string& entityId, bool invulnerable, float duration) {
+    SceneAction action;
+    action.type = SceneActionType::SET_INVULNERABLE;
+    action.stringParam = entityId;
+    action.boolParam = invulnerable;
+    action.duration = duration;
     
     return action;
 }

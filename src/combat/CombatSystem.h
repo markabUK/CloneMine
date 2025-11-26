@@ -74,6 +74,10 @@ public:
     void addCombatEvent(const CombatEvent& event);
     std::vector<CombatEvent> getCombatLog(const std::string& playerId, int maxEvents = 50) const;
 
+    // Invulnerability (for scripted scenes)
+    void setInvulnerable(const std::string& entityId, bool invulnerable);
+    bool isInvulnerable(const std::string& entityId) const;
+
 private:
     struct PlayerCombatData {
         std::string targetId;
@@ -86,6 +90,7 @@ private:
 
     std::unordered_map<std::string, PlayerCombatData> m_playerCombatData;
     std::vector<CombatEvent> m_combatLog;
+    std::unordered_map<std::string, bool> m_invulnerableEntities;
 
     // Constants
     static constexpr float AUTO_ATTACK_SPEED = 2.0f; // 2 seconds per attack

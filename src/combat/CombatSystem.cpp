@@ -206,6 +206,12 @@ float CombatSystem::calculateDamage(const std::string& attackerId, const std::st
 }
 
 void CombatSystem::applyDamage(const std::string& targetId, float damage, const std::string& sourceId) {
+    // Check if target is invulnerable
+    if (isInvulnerable(targetId)) {
+        std::cout << "[Combat] Target " << targetId << " is invulnerable, damage ignored" << std::endl;
+        return;
+    }
+    
     // TODO: Integrate with Player/Monster health system
     std::cout << "[Combat] " << sourceId << " dealt " << damage << " damage to " << targetId << std::endl;
     
@@ -290,4 +296,19 @@ bool CombatSystem::rollCritical(float critChance) const {
     static std::uniform_real_distribution<> dis(0.0, 1.0);
     
     return dis(gen) < critChance;
+}
+
+void CombatSystem::setInvulnerable(const std::string& entityId, bool invulnerable) {
+    if (invulnerable) {
+        m_invulnerableEntities[entityId] = true;
+        std::cout << "[Combat] Entity " << entityId << " is now INVULNERABLE" << std::endl;
+    } else {
+        m_invulnerableEntities.erase(entityId);
+        std::cout << "[Combat] Entity " << entityId << " is now VULNERABLE" << std::endl;
+    }
+}
+
+bool CombatSystem::isInvulnerable(const std::string& entityId) const {
+    auto it = m_invulnerableEntities.find(entityId);
+    return it != m_invulnerableEntities.end() && it->second;
 }
