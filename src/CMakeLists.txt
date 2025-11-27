@@ -14,6 +14,7 @@ set(COMMON_SOURCES
     audio/AudioManager.cpp
     scripting/ScriptedScene.cpp
     combat/CombatSystem.cpp
+    combat/WeaponSystem.cpp
     trading/AuctionHouse.cpp
 )
 
@@ -36,6 +37,7 @@ set(COMMON_HEADERS
     scripting/ScriptedScene.h
     config/ServerConfig.h
     combat/CombatSystem.h
+    combat/WeaponSystem.h
     trading/AuctionHouse.h
 )
 
