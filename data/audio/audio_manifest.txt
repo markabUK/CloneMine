@@ -1,0 +1,50 @@
+# Audio Manifest
+# This file lists all audio files that should be loaded by the AudioManager
+# Format: name,filepath,category
+
+# Weapon sounds
+sword_swing,audio/weapons/sword_swing.ogg,WEAPON
+sword_hit,audio/weapons/sword_hit.ogg,WEAPON
+bow_shoot,audio/weapons/bow_shoot.ogg,WEAPON
+arrow_hit,audio/weapons/arrow_hit.ogg,WEAPON
+
+# Spell sounds
+fireball_cast,audio/spells/fireball_cast.ogg,SPELL
+fireball_impact,audio/spells/fireball_impact.ogg,SPELL
+heal_cast,audio/spells/heal_cast.ogg,SPELL
+lightning_cast,audio/spells/lightning_cast.ogg,SPELL
+
+# Creature sounds
+zombie_idle,audio/creatures/zombie_idle.ogg,CREATURE
+zombie_attack,audio/creatures/zombie_attack.ogg,CREATURE
+zombie_death,audio/creatures/zombie_death.ogg,CREATURE
+skeleton_idle,audio/creatures/skeleton_idle.ogg,CREATURE
+skeleton_death,audio/creatures/skeleton_death.ogg,CREATURE
+
+# Player sounds
+player_hurt,audio/player/hurt.ogg,PLAYER
+player_death,audio/player/death.ogg,PLAYER
+player_level_up,audio/player/level_up.ogg,PLAYER
+footstep,audio/player/footstep.ogg,PLAYER
+jump,audio/player/jump.ogg,PLAYER
+land,audio/player/land.ogg,PLAYER
+
+# Dialog/UI sounds
+dialog_open,audio/ui/dialog_open.ogg,DIALOG
+dialog_close,audio/ui/dialog_close.ogg,DIALOG
+quest_accept,audio/ui/quest_accept.ogg,UI
+quest_complete,audio/ui/quest_complete.ogg,UI
+
+# Music
+tutorial_music,audio/music/tutorial.ogg,MUSIC
+boss_music,audio/music/boss_battle.ogg,MUSIC
+victory_music,audio/music/victory.ogg,MUSIC
+
+# Dialog audio (for scripted scenes)
+tutorial/elder_welcome,audio/dialog/tutorial/elder_welcome.ogg,DIALOG
+tutorial/player_ready,audio/dialog/tutorial/player_ready.ogg,DIALOG
+tutorial/elder_quest,audio/dialog/tutorial/elder_quest.ogg,DIALOG
+tutorial/elder_congratulate,audio/dialog/tutorial/elder_congratulate.ogg,DIALOG
+
+# Boss sounds
+boss_roar,audio/creatures/boss_roar.ogg,CREATURE

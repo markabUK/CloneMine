@@ -9,6 +9,7 @@ World::World() {
 
 void World::update(float deltaTime) {
     // World update logic (physics, block updates, etc.)
+    (void)deltaTime; // Suppress unused parameter warning
 }
 
 void World::setBlock(int x, int y, int z, BlockType type) {
