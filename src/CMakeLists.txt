@@ -57,6 +57,7 @@ set(CLIENT_SOURCES
     rendering/VulkanPipeline.cpp
     rendering/VulkanBuffer.cpp
     rendering/Renderer.cpp
+    rendering/WorldRenderer.cpp
 )
 
 set(CLIENT_HEADERS
@@ -73,6 +74,7 @@ set(CLIENT_HEADERS
     rendering/VulkanPipeline.h
     rendering/VulkanBuffer.h
     rendering/Renderer.h
+    rendering/WorldRenderer.h
 )
 
 # Server-specific source files
