@@ -4,6 +4,7 @@ set(COMMON_SOURCES
     world/World.cpp
     world/Block.cpp
     world/Player.cpp
+    world/AuctionTerminal.cpp
     plugin/PluginManager.cpp
     plugin/LuaSandbox.cpp
     plugin/PluginAPI.cpp
@@ -24,6 +25,7 @@ set(COMMON_HEADERS
     world/World.h
     world/Block.h
     world/Player.h
+    world/AuctionTerminal.h
     plugin/PluginManager.h
     plugin/LuaSandbox.h
     plugin/PluginAPI.h
