@@ -27,15 +27,21 @@ enum class WeaponType {
     NONE
 };
 
-// Magic schools for wands
+// Magic schools for wands and spells
 enum class MagicSchool {
     FIRE,        // Fire bolt
-    FROST,       // Frost bolt
-    ARCANE,      // Arcane bolt
-    NATURE,      // Nature bolt
+    ICE,         // Ice/Frost bolt
+    NATURE,      // Nature bolt (can heal)
+    ACID,        // Acid bolt (corrosive)
+    NECROTIC,    // Necrotic bolt (life drain)
+    ARCANE,      // Arcane bolt (pure magic)
     SHADOW,      // Shadow bolt
-    HOLY,        // Holy bolt
-    LIGHTNING,   // Lightning bolt
+    RADIANT,     // Radiant bolt (healing, barriers)
+    HOLY,        // Holy bolt (healing and attacking)
+    LIGHTNING,   // Lightning bolt (special nature damage)
+    CONJURING,   // Conjuration magic (summoning)
+    PSIONIC,     // Psionic bolt (mental damage)
+    WATER,       // Water bolt (can attack and heal)
     NONE
 };
 
@@ -43,12 +49,18 @@ enum class MagicSchool {
 enum class WeaponDamageType {
     PHYSICAL,    // Swords, axes, bows, guns
     FIRE,        // Fire wands
-    FROST,       // Frost wands
-    ARCANE,      // Arcane wands
+    ICE,         // Ice/Frost wands
     NATURE,      // Nature wands
+    ACID,        // Acid wands
+    NECROTIC,    // Necrotic wands
+    ARCANE,      // Arcane wands
     SHADOW,      // Shadow wands
+    RADIANT,     // Radiant wands (protective)
     HOLY,        // Holy wands
-    LIGHTNING    // Lightning wands
+    LIGHTNING,   // Lightning wands
+    CONJURING,   // Conjuration wands
+    PSIONIC,     // Psionic wands
+    WATER        // Water wands
 };
 
 // Weapon data structure
@@ -94,12 +106,18 @@ struct Weapon {
         if (type == WeaponType::WAND) {
             switch (magicSchool) {
                 case MagicSchool::FIRE: return WeaponDamageType::FIRE;
-                case MagicSchool::FROST: return WeaponDamageType::FROST;
-                case MagicSchool::ARCANE: return WeaponDamageType::ARCANE;
+                case MagicSchool::ICE: return WeaponDamageType::ICE;
                 case MagicSchool::NATURE: return WeaponDamageType::NATURE;
+                case MagicSchool::ACID: return WeaponDamageType::ACID;
+                case MagicSchool::NECROTIC: return WeaponDamageType::NECROTIC;
+                case MagicSchool::ARCANE: return WeaponDamageType::ARCANE;
                 case MagicSchool::SHADOW: return WeaponDamageType::SHADOW;
+                case MagicSchool::RADIANT: return WeaponDamageType::RADIANT;
                 case MagicSchool::HOLY: return WeaponDamageType::HOLY;
                 case MagicSchool::LIGHTNING: return WeaponDamageType::LIGHTNING;
+                case MagicSchool::CONJURING: return WeaponDamageType::CONJURING;
+                case MagicSchool::PSIONIC: return WeaponDamageType::PSIONIC;
+                case MagicSchool::WATER: return WeaponDamageType::WATER;
                 default: return WeaponDamageType::ARCANE;
             }
         }
@@ -168,12 +186,18 @@ inline const char* weaponTypeToString(WeaponType type) {
 inline const char* magicSchoolToString(MagicSchool school) {
     switch (school) {
         case MagicSchool::FIRE: return "Fire";
-        case MagicSchool::FROST: return "Frost";
-        case MagicSchool::ARCANE: return "Arcane";
+        case MagicSchool::ICE: return "Ice";
         case MagicSchool::NATURE: return "Nature";
+        case MagicSchool::ACID: return "Acid";
+        case MagicSchool::NECROTIC: return "Necrotic";
+        case MagicSchool::ARCANE: return "Arcane";
         case MagicSchool::SHADOW: return "Shadow";
+        case MagicSchool::RADIANT: return "Radiant";
         case MagicSchool::HOLY: return "Holy";
         case MagicSchool::LIGHTNING: return "Lightning";
+        case MagicSchool::CONJURING: return "Conjuring";
+        case MagicSchool::PSIONIC: return "Psionic";
+        case MagicSchool::WATER: return "Water";
         case MagicSchool::NONE: return "None";
         default: return "Unknown";
     }
@@ -183,12 +207,18 @@ inline const char* weaponDamageTypeToString(WeaponDamageType type) {
     switch (type) {
         case WeaponDamageType::PHYSICAL: return "Physical";
         case WeaponDamageType::FIRE: return "Fire";
-        case WeaponDamageType::FROST: return "Frost";
-        case WeaponDamageType::ARCANE: return "Arcane";
+        case WeaponDamageType::ICE: return "Ice";
         case WeaponDamageType::NATURE: return "Nature";
+        case WeaponDamageType::ACID: return "Acid";
+        case WeaponDamageType::NECROTIC: return "Necrotic";
+        case WeaponDamageType::ARCANE: return "Arcane";
         case WeaponDamageType::SHADOW: return "Shadow";
+        case WeaponDamageType::RADIANT: return "Radiant";
         case WeaponDamageType::HOLY: return "Holy";
         case WeaponDamageType::LIGHTNING: return "Lightning";
+        case WeaponDamageType::CONJURING: return "Conjuring";
+        case WeaponDamageType::PSIONIC: return "Psionic";
+        case WeaponDamageType::WATER: return "Water";
         default: return "Unknown";
     }
 }

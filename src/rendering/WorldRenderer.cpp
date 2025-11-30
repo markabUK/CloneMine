@@ -494,22 +494,34 @@ RenderEntity RenderEntityFactory::createProjectileEntity(uint32_t id, const std:
     } else if (projectileType == "bullet") {
         entity.textureName = "bullet_texture";
     } else if (projectileType.find("_bolt") != std::string::npos) {
-        // Magic bolt (fire_bolt, frost_bolt, etc.)
+        // Magic bolt (fire_bolt, ice_bolt, etc.)
         entity.textureName = projectileType + "_texture";
         entity.effectColor = glm::vec3(1.0f, 0.5f, 0.0f); // Default orange for fire
         
-        if (projectileType == "frost_bolt") {
+        if (projectileType == "ice_bolt") {
             entity.effectColor = glm::vec3(0.5f, 0.8f, 1.0f); // Light blue
         } else if (projectileType == "arcane_bolt") {
             entity.effectColor = glm::vec3(0.8f, 0.4f, 1.0f); // Purple
         } else if (projectileType == "nature_bolt") {
             entity.effectColor = glm::vec3(0.4f, 1.0f, 0.4f); // Green
+        } else if (projectileType == "acid_bolt") {
+            entity.effectColor = glm::vec3(0.6f, 1.0f, 0.0f); // Yellow-green
+        } else if (projectileType == "necrotic_bolt") {
+            entity.effectColor = glm::vec3(0.2f, 0.1f, 0.3f); // Dark grey-purple
         } else if (projectileType == "shadow_bolt") {
             entity.effectColor = glm::vec3(0.3f, 0.0f, 0.5f); // Dark purple
+        } else if (projectileType == "radiant_bolt") {
+            entity.effectColor = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white
         } else if (projectileType == "holy_bolt") {
             entity.effectColor = glm::vec3(1.0f, 1.0f, 0.7f); // Light yellow
         } else if (projectileType == "lightning_bolt") {
             entity.effectColor = glm::vec3(1.0f, 1.0f, 0.0f); // Bright yellow
+        } else if (projectileType == "conjuring_bolt") {
+            entity.effectColor = glm::vec3(0.6f, 0.3f, 0.8f); // Blue-purple
+        } else if (projectileType == "psionic_bolt") {
+            entity.effectColor = glm::vec3(1.0f, 0.0f, 1.0f); // Magenta
+        } else if (projectileType == "water_bolt") {
+            entity.effectColor = glm::vec3(0.2f, 0.5f, 1.0f); // Blue
         }
     } else {
         entity.textureName = "projectile_default";
@@ -532,21 +544,33 @@ SpellEffect RenderEntityFactory::createSpellEffect(uint32_t id, const std::strin
     
     // Set color based on magic school
     if (school == "fire") {
-        effect.color = glm::vec3(1.0f, 0.4f, 0.0f);
-    } else if (school == "frost") {
-        effect.color = glm::vec3(0.5f, 0.8f, 1.0f);
-    } else if (school == "arcane") {
-        effect.color = glm::vec3(0.8f, 0.4f, 1.0f);
+        effect.color = glm::vec3(1.0f, 0.4f, 0.0f);       // Orange
+    } else if (school == "ice") {
+        effect.color = glm::vec3(0.5f, 0.8f, 1.0f);       // Light blue
     } else if (school == "nature") {
-        effect.color = glm::vec3(0.4f, 1.0f, 0.4f);
+        effect.color = glm::vec3(0.4f, 1.0f, 0.4f);       // Green
+    } else if (school == "acid") {
+        effect.color = glm::vec3(0.6f, 1.0f, 0.0f);       // Yellow-green
+    } else if (school == "necrotic") {
+        effect.color = glm::vec3(0.2f, 0.1f, 0.3f);       // Dark grey-purple
+    } else if (school == "arcane") {
+        effect.color = glm::vec3(0.8f, 0.4f, 1.0f);       // Purple
     } else if (school == "shadow") {
-        effect.color = glm::vec3(0.3f, 0.0f, 0.5f);
+        effect.color = glm::vec3(0.3f, 0.0f, 0.5f);       // Dark purple
+    } else if (school == "radiant") {
+        effect.color = glm::vec3(1.0f, 0.95f, 0.8f);      // Warm white
     } else if (school == "holy") {
-        effect.color = glm::vec3(1.0f, 1.0f, 0.7f);
+        effect.color = glm::vec3(1.0f, 1.0f, 0.7f);       // Light yellow
     } else if (school == "lightning") {
-        effect.color = glm::vec3(1.0f, 1.0f, 0.0f);
+        effect.color = glm::vec3(1.0f, 1.0f, 0.0f);       // Bright yellow
+    } else if (school == "conjuring") {
+        effect.color = glm::vec3(0.6f, 0.3f, 0.8f);       // Blue-purple
+    } else if (school == "psionic") {
+        effect.color = glm::vec3(1.0f, 0.0f, 1.0f);       // Magenta
+    } else if (school == "water") {
+        effect.color = glm::vec3(0.2f, 0.5f, 1.0f);       // Blue
     } else {
-        effect.color = glm::vec3(1.0f, 1.0f, 1.0f);
+        effect.color = glm::vec3(1.0f, 1.0f, 1.0f);       // White (default)
     }
     
     // Determine if projectile based on spell name
