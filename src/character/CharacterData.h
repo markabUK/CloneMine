@@ -60,6 +60,13 @@ struct QuestProgress {
     std::vector<uint32_t> objectiveProgress;
 };
 
+// Powerset selection for character creation
+struct CharacterPowersets {
+    std::string primaryPowersetName;
+    std::string secondaryPowersetName;
+    float secondaryEffectiveness{0.75f};  // Typically 0.65-0.80 based on archetype
+};
+
 // Character data - complete state
 struct CharacterData {
     uint32_t characterId;
@@ -68,6 +75,9 @@ struct CharacterData {
     uint32_t level;
     uint32_t experience;
     uint32_t experienceToNextLevel;
+    
+    // Dual Powerset System (City of Heroes style)
+    CharacterPowersets powersets;
     
     // Position and orientation
     glm::vec3 position;

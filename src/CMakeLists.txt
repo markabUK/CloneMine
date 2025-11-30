@@ -16,6 +16,7 @@ set(COMMON_SOURCES
     combat/CombatSystem.cpp
     combat/WeaponSystem.cpp
     trading/AuctionHouse.cpp
+    character/ClassSystem.cpp
 )
 
 set(COMMON_HEADERS
@@ -33,6 +34,7 @@ set(COMMON_HEADERS
     combat/DamageTypes.h
     quest/QuestData.h
     character/CharacterData.h
+    character/ClassSystem.h
     audio/AudioManager.h
     scripting/ScriptedScene.h
     config/ServerConfig.h
