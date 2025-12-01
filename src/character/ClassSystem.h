@@ -32,6 +32,25 @@ enum class PowersetCategory {
 };
 
 // =============================================================================
+// Powerset Ability - A single ability within a powerset (loaded from Lua)
+// =============================================================================
+struct PowersetAbility {
+    uint32_t id;
+    std::string name;
+    int level;           // Level required to learn
+    float damage;        // Base damage (if applicable)
+    float heal;          // Base heal (if applicable)
+    float cooldown;      // Cooldown in seconds
+    float duration;      // Duration for DoTs/HoTs/buffs
+    bool isAoe;          // Is area of effect
+    bool isDot;          // Is damage over time
+    std::string effect;  // For control/buff effects
+    
+    PowersetAbility() : id(0), level(1), damage(0), heal(0), cooldown(0),
+                        duration(0), isAoe(false), isDot(false) {}
+};
+
+// =============================================================================
 // Powerset - A themed set of abilities from a magic school
 // =============================================================================
 struct Powerset {
@@ -42,7 +61,10 @@ struct Powerset {
     bool isPrimary;                   // Is this a primary or secondary set?
     float effectivenessModifier;      // 1.0 for primary, 0.75 for secondary typically
     
-    // List of ability IDs in this powerset
+    // List of abilities in this powerset (loaded from Lua)
+    std::vector<PowersetAbility> abilities;
+    
+    // Legacy: ability IDs for compatibility
     std::vector<uint32_t> abilityIds;
     
     Powerset() : category(PowersetCategory::ATTACK), 
@@ -69,10 +91,14 @@ struct CharacterClass {
     // Resource type
     std::string resourceType; // "mana", "energy", "rage", "focus"
     
-    // Available powersets for primary slot (based on archetype)
+    // Allowed powerset names (loaded from Lua)
+    std::vector<std::string> allowedPrimaryPowersetNames;
+    std::vector<std::string> allowedSecondaryPowersetNames;
+    
+    // Available powersets for primary slot (resolved at runtime)
     std::vector<Powerset> availablePrimaryPowersets;
     
-    // Available powersets for secondary slot (based on archetype)
+    // Available powersets for secondary slot (resolved at runtime)
     std::vector<Powerset> availableSecondaryPowersets;
     
     // Health and resource scaling
@@ -81,9 +107,13 @@ struct CharacterClass {
     float baseResource;
     float resourcePerLevel;
     
+    // Secondary effectiveness for this class
+    float secondaryEffectiveness;
+    
     CharacterClass() : archetype(ClassArchetype::ATTACKER), 
                        baseHealth(100.0f), healthPerLevel(10.0f),
-                       baseResource(100.0f), resourcePerLevel(5.0f) {}
+                       baseResource(100.0f), resourcePerLevel(5.0f),
+                       secondaryEffectiveness(0.75f) {}
 };
 
 // =============================================================================
@@ -101,13 +131,17 @@ struct PowersetSelection {
 
 // =============================================================================
 // ClassSystem - Manages all class definitions and powerset availability
+// Loads all data from Lua files in data/powersets/
 // =============================================================================
 class ClassSystem {
 public:
     ClassSystem();
     
-    // Initialize all classes and powersets
+    // Initialize all classes and powersets (loads from Lua)
     void initialize();
+    
+    // Reload data from Lua files
+    void reload();
     
     // Get all available classes
     const std::vector<CharacterClass>& getAvailableClasses() const { return m_classes; }
@@ -137,23 +171,28 @@ public:
     // Get secondary effectiveness for an archetype
     float getSecondaryEffectiveness(ClassArchetype archetype) const;
     
+    // Get the data directory path
+    static std::string getDataPath() { return "data/powersets/"; }
+    
 private:
     std::vector<CharacterClass> m_classes;
     std::vector<Powerset> m_allPowersets;
+    std::map<std::string, Powerset> m_powersetsByName;
+    bool m_initialized;
     
-    // Helper methods to create classes
-    void createAttackerClasses();
-    void createTankClasses();
-    void createHealerClasses();
-    void createMastermindClasses();
+    // Lua loading methods
+    bool loadPowersetsFromLua(const std::string& filepath);
+    bool loadClassesFromLua(const std::string& filepath);
+    void resolveClassPowersets();
     
-    // Helper methods to create powersets
-    void createAttackPowersets();
-    void createDefensePowersets();
-    void createHealingPowersets();
-    void createBuffPowersets();
-    void createSummonPowersets();
-    void createControlPowersets();
+    // Helper to convert string to category
+    PowersetCategory stringToCategory(const std::string& cat) const;
+    
+    // Helper to convert string to archetype
+    ClassArchetype stringToArchetype(const std::string& arch) const;
+    
+    // Helper to convert string to damage type
+    ElementalDamageType stringToDamageType(const std::string& type) const;
     
     // Find powerset by name
     const Powerset* findPowerset(const std::string& name) const;
