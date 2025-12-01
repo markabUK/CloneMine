@@ -2,25 +2,27 @@
 
 [![Build](https://github.com/markabUK/CloneMine/actions/workflows/build.yml/badge.svg)](https://github.com/markabUK/CloneMine/actions/workflows/build.yml)
 
-A Minecraft-inspired voxel game engine built with modern C++20, featuring Vulkan rendering, secure Lua plugin support, and cross-platform compatibility.
+A Minecraft-inspired voxel game engine built with modern C++20, featuring Vulkan rendering, secure Lua plugin support, client-server multiplayer, and cross-platform compatibility.
 
 ## Features
 
 - **Modern C++20**: Utilizes the latest C++ features with memory-safe practices
+- **Client-Server Multiplayer**: Support for multiple players connecting to a dedicated server
 - **Vulkan Rendering**: Cross-platform graphics using Vulkan API
 - **Secure Plugin System**: Sandboxed Lua plugins with restricted API access
 - **Voxel-Based World**: Chunk-based terrain generation and management
+- **Player Persistence**: Automatic saving and loading of player data
 - **CMake Build System**: Easy to build and configure
 
 ## Requirements
 
-### Build Dependencies
+### Server Build Dependencies
 - CMake 3.20 or higher
 - C++20 compatible compiler (GCC 10+, Clang 11+, MSVC 2019+)
-- Vulkan SDK 1.2 or higher
 - Git (for submodule dependencies)
 
-### Runtime Dependencies
+### Client Build Dependencies (Additional)
+- Vulkan SDK 1.2 or higher
 - Vulkan-capable GPU and drivers
 
 ## Building
@@ -58,7 +60,23 @@ cmake --build . --config Release
 
 ## Running
 
-After building, run the executable from the build directory:
+### Multiplayer Mode
+
+**Start the server:**
+```bash
+./CloneMineServer [port]  # Default port: 25565
+```
+
+**Connect with client:**
+```bash
+./CloneMineClient <host> <port> <playername>
+```
+
+See [MULTIPLAYER.md](MULTIPLAYER.md) for detailed multiplayer documentation.
+
+### Single-Player Mode
+
+Run the original single-player game:
 
 ```bash
 ./CloneMine  # Linux/macOS

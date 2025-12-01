@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "../rpg/Spell.h"
+#include "../combat/DamageCalculation.h"
 #include <cmath>
 #include <algorithm>
 
@@ -75,7 +76,7 @@ void Player::setClass(const std::string& className) {
 
 void Player::setLevel(int level) {
     if (level > m_level) {
-        int levelGain = level - m_level;
+        // int levelGain = level - m_level;  // TODO: Use this for stat point allocation
         m_level = level;
         
         // Award stat points (3 per level in D&D style)
