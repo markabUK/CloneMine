@@ -10,3 +10,6 @@
 	path = external/lua
 	url = https://github.com/lua/lua.git
 	branch = master
+[submodule "external/asio"]
+	path = external/asio
+	url = https://github.com/chriskohlhoff/asio.git

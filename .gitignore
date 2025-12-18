@@ -8,3 +8,8 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.spv
+server_saves/
+saves/
+*.log
+_codeql_build_dir/
+*.o

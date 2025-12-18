@@ -40,6 +40,7 @@ int PluginAPI::lua_setBlockType(lua_State* L) {
     // int blockType = luaL_checkinteger(L, 4);
     
     // Placeholder - would modify the actual world
+    (void)L; // Suppress unused parameter warning
     return 0;
 }
 
