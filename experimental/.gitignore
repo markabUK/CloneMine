@@ -1,0 +1,50 @@
+# .NET build artifacts
+bin/
+obj/
+*.user
+*.suo
+*.cache
+
+# Visual Studio
+.vs/
+*.vsidx
+
+# Rider
+.idea/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Runtime data
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# OS specific
+.DS_Store
+Thumbs.db
