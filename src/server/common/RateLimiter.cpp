@@ -4,6 +4,11 @@
 namespace clonemine {
 namespace server {
 
+// Configuration constants
+namespace {
+    constexpr size_t CLEANUP_MULTIPLIER = 2; // Remove entries older than 2x window duration
+}
+
 RateLimiter::RateLimiter(size_t maxRequests, size_t windowSeconds)
     : m_maxRequests(maxRequests)
     , m_windowDuration(std::chrono::seconds(windowSeconds))
@@ -76,8 +81,8 @@ void RateLimiter::cleanupExpiredEntries() {
     
     for (auto it = m_clients.begin(); it != m_clients.end(); ) {
         auto elapsed = now - it->second.windowStart;
-        if (elapsed >= m_windowDuration * 2) {
-            // Remove entries that are expired for more than 2x the window duration
+        if (elapsed >= m_windowDuration * CLEANUP_MULTIPLIER) {
+            // Remove entries that are expired for more than CLEANUP_MULTIPLIER times the window duration
             it = m_clients.erase(it);
         } else {
             ++it;

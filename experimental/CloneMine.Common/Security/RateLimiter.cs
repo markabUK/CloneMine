@@ -9,6 +9,8 @@ namespace CloneMine.Common.Security;
 /// </summary>
 public class RateLimiter : IRateLimiter
 {
+    private const int CleanupMultiplier = 2; // Remove entries older than 2x window duration
+    
     private readonly int _maxRequests;
     private readonly TimeSpan _windowDuration;
     private readonly ConcurrentDictionary<string, ClientInfo> _clients;
@@ -19,6 +21,7 @@ public class RateLimiter : IRateLimiter
     {
         public int RequestCount { get; set; }
         public DateTime WindowStart { get; set; }
+        public object Lock { get; } = new object(); // Dedicated lock per client
     }
 
     /// <summary>
@@ -67,7 +70,7 @@ public class RateLimiter : IRateLimiter
             WindowStart = now
         });
 
-        lock (clientInfo)
+        lock (clientInfo.Lock)
         {
             var elapsed = now - clientInfo.WindowStart;
 
@@ -126,7 +129,7 @@ public class RateLimiter : IRateLimiter
 
         if (_clients.TryGetValue(ipAddress, out var clientInfo))
         {
-            lock (clientInfo)
+            lock (clientInfo.Lock)
             {
                 return clientInfo.RequestCount;
             }
@@ -143,9 +146,9 @@ public class RateLimiter : IRateLimiter
         foreach (var kvp in _clients)
         {
             var elapsed = now - kvp.Value.WindowStart;
-            if (elapsed >= _windowDuration * 2)
+            if (elapsed >= _windowDuration * CleanupMultiplier)
             {
-                // Remove entries that are expired for more than 2x the window duration
+                // Remove entries that are expired for more than CleanupMultiplier times the window duration
                 expiredKeys.Add(kvp.Key);
             }
         }
