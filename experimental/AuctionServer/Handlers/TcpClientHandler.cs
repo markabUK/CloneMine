@@ -11,14 +11,17 @@ namespace CloneMine.AuctionServer.Handlers;
 public class TcpClientHandler : IClientHandler
 {
     private readonly IMessageHandler _messageHandler;
-    private readonly IEncryptionService _encryptionService;
+    private readonly CloneMine.AuctionServer.Interfaces.IEncryptionService _encryptionService;
+    private readonly CloneMine.Common.Interfaces.IRateLimiter _rateLimiter;
 
     public TcpClientHandler(
         IMessageHandler messageHandler,
-        IEncryptionService encryptionService)
+        CloneMine.AuctionServer.Interfaces.IEncryptionService encryptionService,
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter)
     {
         _messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
         _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
+        _rateLimiter = rateLimiter ?? throw new ArgumentNullException(nameof(rateLimiter));
     }
 
     public async Task HandleClientAsync(TcpClient client)
@@ -29,6 +32,16 @@ public class TcpClientHandler : IClientHandler
         }
 
         var remoteEndPoint = client.Client.RemoteEndPoint?.ToString() ?? "Unknown";
+        var clientIp = client.Client.RemoteEndPoint?.ToString()?.Split(':')[0] ?? "Unknown";
+        
+        // Check rate limit
+        if (!_rateLimiter.AllowRequest(clientIp))
+        {
+            Console.WriteLine($"[AuctionServer] Rate limit exceeded for IP: {clientIp} - connection rejected");
+            client.Close();
+            return;
+        }
+        
         Console.WriteLine($"[AuctionServer] Client connected: {remoteEndPoint}");
 
         try

@@ -12,9 +12,11 @@ namespace server {
 CharacterServer::CharacterServer(uint16_t port, uint32_t maxCharactersPerAccount)
     : m_port(port)
     , m_maxCharactersPerAccount(maxCharactersPerAccount)
+    , m_rateLimiter(std::make_unique<RateLimiter>(100, 60)) // 100 requests per 60 seconds
 {
     std::cout << "Initializing character server on port " << port << "..." << std::endl;
     std::cout << "Max characters per account: " << maxCharactersPerAccount << std::endl;
+    std::cout << "Rate limiting enabled: 100 requests per 60 seconds" << std::endl;
 }
 
 CharacterServer::~CharacterServer() {
@@ -122,6 +124,16 @@ void CharacterServer::acceptConnections() {
 
 void CharacterServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket) {
     try {
+        // Get client IP address for rate limiting
+        std::string clientIp = socket->remote_endpoint().address().to_string();
+        
+        // Check rate limit
+        if (!m_rateLimiter->allowRequest(clientIp)) {
+            std::cerr << "Rate limit exceeded for IP: " << clientIp << " - connection rejected" << std::endl;
+            socket->close();
+            return;
+        }
+        
         auto encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
         
         // Create session

@@ -10,8 +10,10 @@ namespace server {
 GameServer::GameServer(uint16_t port)
     : m_world(std::make_unique<World>())
     , m_port(port)
+    , m_rateLimiter(std::make_unique<RateLimiter>(200, 60)) // 200 requests per 60 seconds for game actions
 {
     std::cout << "Initializing game server on port " << port << "..." << std::endl;
+    std::cout << "Rate limiting enabled: 200 requests per 60 seconds" << std::endl;
     
     // Create saves directory if it doesn't exist
     std::filesystem::create_directories("server_saves");
@@ -118,6 +120,16 @@ void GameServer::acceptConnections() {
 
 void GameServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket) {
     try {
+        // Get client IP address for rate limiting
+        std::string clientIp = socket->remote_endpoint().address().to_string();
+        
+        // Check rate limit
+        if (!m_rateLimiter->allowRequest(clientIp)) {
+            std::cerr << "Rate limit exceeded for IP: " << clientIp << " - connection rejected" << std::endl;
+            socket->close();
+            return;
+        }
+        
         // Create a temporary encryption instance for this connection
         auto encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
         

@@ -54,6 +54,7 @@ class Program
         Console.WriteLine("  ✓ Input validation and sanitization");
         Console.WriteLine("  ✓ SQL injection protection");
         Console.WriteLine("  ✓ Null checks on all inputs");
+        Console.WriteLine("  ✓ Rate limiting (50 requests per 60 seconds)");
         Console.WriteLine();
         Console.WriteLine("[LoginServer] Test accounts:");
         Console.WriteLine("  Username: test, Password: test123");
@@ -65,7 +66,8 @@ class Program
         IAccountRepository accountRepository = new InMemoryAccountRepository();
         IPasswordHasher passwordHasher = new PasswordHasher();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.LoginServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(50, 60); // 50 requests per 60 seconds
         
         IAuthenticationService authService = new AuthenticationService(
             accountRepository,
@@ -80,7 +82,8 @@ class Program
         
         IClientHandler clientHandler = new TcpClientHandler(
             messageHandler,
-            encryptionService);
+            encryptionService,
+            rateLimiter);
         
         var server = new TcpServerListener(config, clientHandler);
 

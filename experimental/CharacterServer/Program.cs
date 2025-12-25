@@ -51,12 +51,14 @@ class Program
         Console.WriteLine("  ✓ Input validation and sanitization");
         Console.WriteLine("  ✓ SQL injection protection");
         Console.WriteLine("  ✓ Null checks on all inputs");
+        Console.WriteLine("  ✓ Rate limiting (100 requests per 60 seconds)");
         Console.WriteLine();
 
         // Dependency Injection - Create all dependencies
         ICharacterRepository characterRepository = new InMemoryCharacterRepository();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.CharacterServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(100, 60); // 100 requests per 60 seconds
 
         ICharacterService characterService = new CharacterService(
             characterRepository,
@@ -69,7 +71,8 @@ class Program
 
         IClientHandler clientHandler = new TcpClientHandler(
             messageHandler,
-            encryptionService);
+            encryptionService,
+            rateLimiter);
 
         var server = new TcpServerListener(config, clientHandler);
 
