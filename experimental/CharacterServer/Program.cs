@@ -5,8 +5,6 @@ using CloneMine.CharacterServer.Repositories;
 using CloneMine.CharacterServer.Security;
 using CloneMine.CharacterServer.Services;
 using CloneMine.CharacterServer.Validation;
-using CloneMine.Common.Interfaces;
-using CloneMine.Common.Security;
 
 namespace CloneMine.CharacterServer;
 
@@ -59,8 +57,8 @@ class Program
         // Dependency Injection - Create all dependencies
         ICharacterRepository characterRepository = new InMemoryCharacterRepository();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
-        IRateLimiter rateLimiter = new RateLimiter(100, 60); // 100 requests per 60 seconds
+        CloneMine.CharacterServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(100, 60); // 100 requests per 60 seconds
 
         ICharacterService characterService = new CharacterService(
             characterRepository,

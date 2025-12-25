@@ -1,17 +1,16 @@
 using System.Net.Sockets;
 using System.Text;
 using CloneMine.ChatServer.Interfaces;
-using CloneMine.Common.Interfaces;
 
 namespace CloneMine.ChatServer.Handlers;
 
 public class TcpClientHandler : IClientHandler
 {
     private readonly IMessageHandler _messageHandler;
-    private readonly IEncryptionService _encryptionService;
-    private readonly IRateLimiter _rateLimiter;
+    private readonly CloneMine.ChatServer.Interfaces.IEncryptionService _encryptionService;
+    private readonly CloneMine.Common.Interfaces.IRateLimiter _rateLimiter;
 
-    public TcpClientHandler(IMessageHandler messageHandler, IEncryptionService encryptionService, IRateLimiter rateLimiter)
+    public TcpClientHandler(IMessageHandler messageHandler, CloneMine.ChatServer.Interfaces.IEncryptionService encryptionService, CloneMine.Common.Interfaces.IRateLimiter rateLimiter)
     {
         _messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
         _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));

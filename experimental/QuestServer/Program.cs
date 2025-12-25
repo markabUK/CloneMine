@@ -5,8 +5,6 @@ using CloneMine.QuestServer.Repositories;
 using CloneMine.QuestServer.Security;
 using CloneMine.QuestServer.Services;
 using CloneMine.QuestServer.Validation;
-using CloneMine.Common.Interfaces;
-using CloneMine.Common.Security;
 
 namespace CloneMine.QuestServer;
 
@@ -53,8 +51,8 @@ class Program
         IQuestRepository questRepository = new InMemoryQuestRepository();
         IProgressRepository progressRepository = new InMemoryProgressRepository();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
-        IRateLimiter rateLimiter = new RateLimiter(100, 60); // 100 requests per 60 seconds
+        CloneMine.QuestServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(100, 60); // 100 requests per 60 seconds
 
         IQuestService questService = new QuestService(
             questRepository,

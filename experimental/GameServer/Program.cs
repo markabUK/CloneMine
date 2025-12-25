@@ -5,8 +5,6 @@ using CloneMine.GameServer.Repositories;
 using CloneMine.GameServer.Security;
 using CloneMine.GameServer.Services;
 using CloneMine.GameServer.Validation;
-using CloneMine.Common.Interfaces;
-using CloneMine.Common.Security;
 
 namespace CloneMine.GameServer;
 
@@ -54,8 +52,8 @@ class Program
         // Dependency Injection - Create all dependencies
         IPlayerRepository playerRepository = new InMemoryPlayerRepository();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
-        IRateLimiter rateLimiter = new RateLimiter(200, 60); // 200 requests per 60 seconds
+        CloneMine.GameServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(200, 60); // 200 requests per 60 seconds
 
         IGameService gameService = new GameService(playerRepository, inputValidator);
 

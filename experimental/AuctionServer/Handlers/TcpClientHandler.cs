@@ -1,7 +1,6 @@
 using System.Net.Sockets;
 using System.Text;
 using CloneMine.AuctionServer.Interfaces;
-using CloneMine.Common.Interfaces;
 
 namespace CloneMine.AuctionServer.Handlers;
 
@@ -12,13 +11,13 @@ namespace CloneMine.AuctionServer.Handlers;
 public class TcpClientHandler : IClientHandler
 {
     private readonly IMessageHandler _messageHandler;
-    private readonly IEncryptionService _encryptionService;
-    private readonly IRateLimiter _rateLimiter;
+    private readonly CloneMine.AuctionServer.Interfaces.IEncryptionService _encryptionService;
+    private readonly CloneMine.Common.Interfaces.IRateLimiter _rateLimiter;
 
     public TcpClientHandler(
         IMessageHandler messageHandler,
-        IEncryptionService encryptionService,
-        IRateLimiter rateLimiter)
+        CloneMine.AuctionServer.Interfaces.IEncryptionService encryptionService,
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter)
     {
         _messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
         _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));

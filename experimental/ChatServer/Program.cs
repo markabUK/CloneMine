@@ -5,8 +5,6 @@ using CloneMine.ChatServer.Repositories;
 using CloneMine.ChatServer.Security;
 using CloneMine.ChatServer.Services;
 using CloneMine.ChatServer.Validation;
-using CloneMine.Common.Interfaces;
-using CloneMine.Common.Security;
 
 namespace CloneMine.ChatServer;
 
@@ -54,8 +52,8 @@ class Program
         // Dependency Injection - Create all dependencies
         IChatRepository chatRepository = new InMemoryChatRepository(config.MaxHistory);
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
-        IRateLimiter rateLimiter = new RateLimiter(150, 60); // 150 requests per 60 seconds
+        CloneMine.ChatServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(150, 60); // 150 requests per 60 seconds
 
         IChatService chatService = new ChatService(chatRepository, inputValidator);
 

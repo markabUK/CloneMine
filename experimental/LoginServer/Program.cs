@@ -5,8 +5,6 @@ using CloneMine.LoginServer.Repositories;
 using CloneMine.LoginServer.Security;
 using CloneMine.LoginServer.Services;
 using CloneMine.LoginServer.Validation;
-using CloneMine.Common.Interfaces;
-using CloneMine.Common.Security;
 
 namespace CloneMine.LoginServer;
 
@@ -68,8 +66,8 @@ class Program
         IAccountRepository accountRepository = new InMemoryAccountRepository();
         IPasswordHasher passwordHasher = new PasswordHasher();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
-        IRateLimiter rateLimiter = new RateLimiter(50, 60); // 50 requests per 60 seconds
+        CloneMine.LoginServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(50, 60); // 50 requests per 60 seconds
         
         IAuthenticationService authService = new AuthenticationService(
             accountRepository,

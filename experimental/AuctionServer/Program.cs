@@ -5,8 +5,6 @@ using CloneMine.AuctionServer.Repositories;
 using CloneMine.AuctionServer.Security;
 using CloneMine.AuctionServer.Services;
 using CloneMine.AuctionServer.Validation;
-using CloneMine.Common.Interfaces;
-using CloneMine.Common.Security;
 
 namespace CloneMine.AuctionServer;
 
@@ -55,8 +53,8 @@ class Program
         // Dependency Injection - Create all dependencies
         IAuctionRepository auctionRepository = new InMemoryAuctionRepository();
         IInputValidator inputValidator = new InputValidator(config);
-        IEncryptionService encryptionService = new AesEncryptionService();
-        IRateLimiter rateLimiter = new RateLimiter(100, 60); // 100 requests per 60 seconds
+        CloneMine.AuctionServer.Interfaces.IEncryptionService encryptionService = new AesEncryptionService();
+        CloneMine.Common.Interfaces.IRateLimiter rateLimiter = new CloneMine.Common.Security.RateLimiter(100, 60); // 100 requests per 60 seconds
 
         IAuctionService auctionService = new AuctionService(
             auctionRepository,
