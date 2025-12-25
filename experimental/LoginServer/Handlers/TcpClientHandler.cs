@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using System.Text;
 using CloneMine.LoginServer.Interfaces;
+using CloneMine.Common.Interfaces;
 
 namespace CloneMine.LoginServer.Handlers;
 
@@ -12,13 +13,16 @@ public class TcpClientHandler : IClientHandler
 {
     private readonly IMessageHandler _messageHandler;
     private readonly IEncryptionService _encryptionService;
+    private readonly IRateLimiter _rateLimiter;
 
     public TcpClientHandler(
         IMessageHandler messageHandler,
-        IEncryptionService encryptionService)
+        IEncryptionService encryptionService,
+        IRateLimiter rateLimiter)
     {
         _messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
         _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
+        _rateLimiter = rateLimiter ?? throw new ArgumentNullException(nameof(rateLimiter));
     }
 
     public async Task HandleClientAsync(TcpClient client)
@@ -29,6 +33,16 @@ public class TcpClientHandler : IClientHandler
         }
 
         var remoteEndPoint = client.Client.RemoteEndPoint?.ToString() ?? "Unknown";
+        var clientIp = client.Client.RemoteEndPoint?.ToString()?.Split(':')[0] ?? "Unknown";
+        
+        // Check rate limit
+        if (!_rateLimiter.AllowRequest(clientIp))
+        {
+            Console.WriteLine($"[LoginServer] Rate limit exceeded for IP: {clientIp} - connection rejected");
+            client.Close();
+            return;
+        }
+        
         Console.WriteLine($"[LoginServer] Client connected: {remoteEndPoint}");
 
         try

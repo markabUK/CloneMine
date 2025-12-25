@@ -5,6 +5,8 @@ using CloneMine.AuctionServer.Repositories;
 using CloneMine.AuctionServer.Security;
 using CloneMine.AuctionServer.Services;
 using CloneMine.AuctionServer.Validation;
+using CloneMine.Common.Interfaces;
+using CloneMine.Common.Security;
 
 namespace CloneMine.AuctionServer;
 
@@ -47,12 +49,14 @@ class Program
         Console.WriteLine("  ✓ Input validation and sanitization");
         Console.WriteLine("  ✓ SQL injection protection");
         Console.WriteLine("  ✓ Null checks on all inputs");
+        Console.WriteLine("  ✓ Rate limiting (100 requests per 60 seconds)");
         Console.WriteLine();
 
         // Dependency Injection - Create all dependencies
         IAuctionRepository auctionRepository = new InMemoryAuctionRepository();
         IInputValidator inputValidator = new InputValidator(config);
         IEncryptionService encryptionService = new AesEncryptionService();
+        IRateLimiter rateLimiter = new RateLimiter(100, 60); // 100 requests per 60 seconds
 
         IAuctionService auctionService = new AuctionService(
             auctionRepository,
@@ -65,7 +69,8 @@ class Program
 
         IClientHandler clientHandler = new TcpClientHandler(
             messageHandler,
-            encryptionService);
+            encryptionService,
+            rateLimiter);
 
         var server = new TcpServerListener(config, clientHandler, auctionService);
 

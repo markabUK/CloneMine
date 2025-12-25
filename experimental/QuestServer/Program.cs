@@ -5,6 +5,8 @@ using CloneMine.QuestServer.Repositories;
 using CloneMine.QuestServer.Security;
 using CloneMine.QuestServer.Services;
 using CloneMine.QuestServer.Validation;
+using CloneMine.Common.Interfaces;
+using CloneMine.Common.Security;
 
 namespace CloneMine.QuestServer;
 
@@ -44,6 +46,7 @@ class Program
         Console.WriteLine("  ✓ Input validation and sanitization");
         Console.WriteLine("  ✓ SQL injection protection");
         Console.WriteLine("  ✓ Null checks on all inputs");
+        Console.WriteLine("  ✓ Rate limiting (100 requests per 60 seconds)");
         Console.WriteLine();
 
         // Dependency Injection - Create all dependencies
@@ -51,6 +54,7 @@ class Program
         IProgressRepository progressRepository = new InMemoryProgressRepository();
         IInputValidator inputValidator = new InputValidator(config);
         IEncryptionService encryptionService = new AesEncryptionService();
+        IRateLimiter rateLimiter = new RateLimiter(100, 60); // 100 requests per 60 seconds
 
         IQuestService questService = new QuestService(
             questRepository,
@@ -59,7 +63,7 @@ class Program
 
         IMessageHandler messageHandler = new QuestMessageHandler(questService, inputValidator);
 
-        IClientHandler clientHandler = new TcpClientHandler(messageHandler, encryptionService);
+        IClientHandler clientHandler = new TcpClientHandler(messageHandler, encryptionService, rateLimiter);
 
         var server = new TcpServerListener(config, clientHandler);
 

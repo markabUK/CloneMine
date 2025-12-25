@@ -18,6 +18,7 @@ set(COMMON_SOURCES
     combat/WeaponSystem.cpp
     trading/AuctionHouse.cpp
     character/ClassSystem.cpp
+    server/common/RateLimiter.cpp
 )
 
 set(COMMON_HEADERS
@@ -43,6 +44,7 @@ set(COMMON_HEADERS
     combat/CombatSystem.h
     combat/WeaponSystem.h
     trading/AuctionHouse.h
+    server/common/RateLimiter.h
 )
 
 # Client-specific source files

@@ -2,6 +2,7 @@
 
 #include "../network/NetworkMessage.h"
 #include "../network/PacketEncryption.h"
+#include "common/RateLimiter.h"
 #include <asio.hpp>
 #include <memory>
 #include <unordered_map>
@@ -64,6 +65,9 @@ private:
     // Threading
     std::atomic<bool> m_running{false};
     uint16_t m_port;
+    
+    // Rate limiter to prevent DOS attacks
+    std::unique_ptr<RateLimiter> m_rateLimiter;
 };
 
 } // namespace server

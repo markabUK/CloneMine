@@ -12,9 +12,11 @@ LoginServer::LoginServer(uint16_t port, uint32_t maxCharactersPerAccount)
     : m_port(port)
     , m_maxCharactersPerAccount(maxCharactersPerAccount)
     , m_rng(m_rd())
+    , m_rateLimiter(std::make_unique<RateLimiter>(50, 60)) // 50 requests per 60 seconds
 {
     std::cout << "Initializing login server on port " << port << "..." << std::endl;
     std::cout << "Max characters per account: " << maxCharactersPerAccount << std::endl;
+    std::cout << "Rate limiting enabled: 50 requests per 60 seconds" << std::endl;
     
     // Add some test users (in production, load from database)
     m_userDatabase["test"] = "test123"; // username:password (should be hashed!)
@@ -119,6 +121,16 @@ void LoginServer::acceptConnections() {
 
 void LoginServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket) {
     try {
+        // Get client IP address for rate limiting
+        std::string clientIp = socket->remote_endpoint().address().to_string();
+        
+        // Check rate limit
+        if (!m_rateLimiter->allowRequest(clientIp)) {
+            std::cerr << "Rate limit exceeded for IP: " << clientIp << " - connection rejected" << std::endl;
+            socket->close();
+            return;
+        }
+        
         auto encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
         
         // Create session

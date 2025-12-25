@@ -5,6 +5,8 @@ using CloneMine.GameServer.Repositories;
 using CloneMine.GameServer.Security;
 using CloneMine.GameServer.Services;
 using CloneMine.GameServer.Validation;
+using CloneMine.Common.Interfaces;
+using CloneMine.Common.Security;
 
 namespace CloneMine.GameServer;
 
@@ -46,18 +48,20 @@ class Program
         Console.WriteLine("  ✓ Input validation and sanitization");
         Console.WriteLine("  ✓ SQL injection protection");
         Console.WriteLine("  ✓ Null checks on all inputs");
+        Console.WriteLine("  ✓ Rate limiting (200 requests per 60 seconds)");
         Console.WriteLine();
 
         // Dependency Injection - Create all dependencies
         IPlayerRepository playerRepository = new InMemoryPlayerRepository();
         IInputValidator inputValidator = new InputValidator(config);
         IEncryptionService encryptionService = new AesEncryptionService();
+        IRateLimiter rateLimiter = new RateLimiter(200, 60); // 200 requests per 60 seconds
 
         IGameService gameService = new GameService(playerRepository, inputValidator);
 
         IMessageHandler messageHandler = new GameMessageHandler(gameService, inputValidator);
 
-        IClientHandler clientHandler = new TcpClientHandler(messageHandler, encryptionService);
+        IClientHandler clientHandler = new TcpClientHandler(messageHandler, encryptionService, rateLimiter);
 
         var server = new TcpServerListener(config, clientHandler, gameService);
 

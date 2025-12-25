@@ -8,8 +8,10 @@ namespace server {
 
 ChatServer::ChatServer(uint16_t port)
     : m_port(port)
+    , m_rateLimiter(std::make_unique<RateLimiter>(150, 60)) // 150 requests per 60 seconds for chat
 {
     std::cout << "Initializing chat server on port " << port << "..." << std::endl;
+    std::cout << "Rate limiting enabled: 150 requests per 60 seconds" << std::endl;
 }
 
 ChatServer::~ChatServer() {
@@ -110,6 +112,16 @@ void ChatServer::acceptConnections() {
 
 void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket) {
     try {
+        // Get client IP address for rate limiting
+        std::string clientIp = socket->remote_endpoint().address().to_string();
+        
+        // Check rate limit
+        if (!m_rateLimiter->allowRequest(clientIp)) {
+            std::cerr << "Rate limit exceeded for IP: " << clientIp << " - connection rejected" << std::endl;
+            socket->close();
+            return;
+        }
+        
         auto encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
         
         // Read connect message (with size prefix)

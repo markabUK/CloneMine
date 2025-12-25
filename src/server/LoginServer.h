@@ -2,6 +2,7 @@
 
 #include "../network/NetworkMessage.h"
 #include "../network/PacketEncryption.h"
+#include "common/RateLimiter.h"
 #include <asio.hpp>
 #include <memory>
 #include <unordered_map>
@@ -79,6 +80,9 @@ private:
     // Random number generator for session tokens
     std::random_device m_rd;
     std::mt19937 m_rng;
+    
+    // Rate limiter to prevent DOS attacks
+    std::unique_ptr<RateLimiter> m_rateLimiter;
 };
 
 } // namespace server

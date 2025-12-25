@@ -3,6 +3,7 @@
 #include "../character/CharacterData.h"
 #include "../network/NetworkMessage.h"
 #include "../network/PacketEncryption.h"
+#include "common/RateLimiter.h"
 #include <asio.hpp>
 #include <memory>
 #include <unordered_map>
@@ -104,6 +105,9 @@ private:
     
     // Configuration
     uint32_t m_maxCharactersPerAccount;
+    
+    // Rate limiter to prevent DOS attacks
+    std::unique_ptr<RateLimiter> m_rateLimiter;
 };
 
 } // namespace server
