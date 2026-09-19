@@ -1,6 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <cstdint>
+#include <vulkan/vulkan.h>
 
 namespace clonemine {
 

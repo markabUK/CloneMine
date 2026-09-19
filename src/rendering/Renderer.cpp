@@ -113,7 +113,9 @@ void Renderer::endFrame() {
 }
 
 void Renderer::renderWorld(const World& world) {
-    // World rendering will be implemented here
+    (void)world; // Silence unused parameter warning
+
+    // TODO: Implement actual Vulkan world/chunk rendering loop here
 }
 
 void Renderer::handleResize() {

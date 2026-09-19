@@ -564,6 +564,7 @@ SceneAction createCompleteQuestAction(const std::string& questId) {
 SceneAction createAttackAction(const std::string& entityId, EntityType entityType,
                                const std::string& targetId, EntityType targetType,
                                const std::string& attackType, float duration) {
+    (void)attackType;
     SceneAction action;
     action.type = SceneActionType::ATTACK;
     action.stringParam = entityId;
@@ -578,6 +579,7 @@ SceneAction createCastSpellAction(const std::string& entityId, EntityType entity
                                   const std::string& spellName,
                                   const std::string& targetId, EntityType targetType,
                                   const glm::vec3& targetPos) {
+    (void)targetId;
     SceneAction action;
     action.type = SceneActionType::CAST_SPELL;
     action.stringParam = entityId;
@@ -592,6 +594,7 @@ SceneAction createCastSpellAction(const std::string& entityId, EntityType entity
 SceneAction createUseAbilityAction(const std::string& entityId, EntityType entityType,
                                    const std::string& abilityName,
                                    const std::string& targetId, EntityType targetType) {
+    (void)targetId;
     SceneAction action;
     action.type = SceneActionType::USE_ABILITY;
     action.stringParam = entityId;

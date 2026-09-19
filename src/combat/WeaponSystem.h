@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include "../core/EntityId.h"
+#include <cstdint>
 
 namespace clonemine {
 

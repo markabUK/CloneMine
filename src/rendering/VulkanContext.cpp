@@ -13,6 +13,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData)
 {
+    //TODO: Implement proper debug message handling
+    (void)messageSeverity;
+    (void)messageType;
+    (void)pCallbackData;
+    (void)pUserData;
+
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
         // Log or handle validation layer messages
     }

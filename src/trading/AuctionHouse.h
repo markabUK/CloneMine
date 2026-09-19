@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <set>
+#include <functional>
 
 enum class AuctionStatus {
     ACTIVE,

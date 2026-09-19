@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <chrono>
 #include "../core/EntityId.h"
+#include <glm/glm.hpp> // Add this for glm::vec3
 
 // Forward declarations
 class Player;
@@ -39,6 +40,8 @@ public:
     CombatSystem();
     ~CombatSystem();
 
+    using PositionProvider = std::function<glm::vec3(const EntityId&)>;
+    void setPositionProvider(PositionProvider provider);
     // Combat state management
     void update(float deltaTime);
     void enterCombat(const EntityId& entityId);
@@ -101,7 +104,8 @@ private:
     static constexpr float MELEE_RANGE = 5.0f;
     static constexpr float RANGED_RANGE = 30.0f;
     static constexpr float CRIT_CHANCE_BASE = 0.05f; // 5% base crit
-
+    PositionProvider m_positionProvider;
+    
     // Helper methods
     bool isInRange(const EntityId& attackerId, const EntityId& targetId) const;
     bool hasLineOfSight(const EntityId& attackerId, const EntityId& targetId) const;

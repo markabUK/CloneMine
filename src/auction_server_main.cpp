@@ -4,8 +4,9 @@
 #include <iostream>
 #include <memory>
 #include <csignal>
-#include "../trading/AuctionHouse.h"
-#include "../config/ServerConfig.h"
+#include "trading/AuctionHouse.h"
+#include "config/ServerConfig.h"
+#include <thread>
 
 static bool g_running = true;
 
@@ -34,10 +35,8 @@ int main(int argc, char* argv[]) {
     
     // Load server configuration
     std::cout << "[AuctionServer] Loading configuration from: " << configFile << std::endl;
-    ServerConfig config;
-    if (!config.load(configFile)) {
-        std::cout << "[AuctionServer] Warning: Could not load config file, using defaults" << std::endl;
-    }
+    clonemine::config::ServerConfig config;
+    config.loadFromFile(configFile);
     
     // Display configuration
     std::cout << "\n[Configuration]" << std::endl;

@@ -11,6 +11,10 @@ CombatSystem::CombatSystem() {
 
 CombatSystem::~CombatSystem() = default;
 
+void CombatSystem::setPositionProvider(PositionProvider provider) {
+    m_positionProvider = std::move(provider);
+}
+
 void CombatSystem::update(float deltaTime) {
     auto currentTime = std::chrono::system_clock::now();
     
@@ -289,14 +293,32 @@ std::vector<CombatEvent> CombatSystem::getCombatLog(const EntityId& entityId, in
 }
 
 bool CombatSystem::isInRange(const EntityId& attackerId, const EntityId& targetId) const {
-    // TODO: Get actual positions from game world
-    // For now, assume always in range
-    return true;
+    if (!m_positionProvider) {
+        return true; // Fallback if the server hasn't wired up the provider yet
+    }
+
+    glm::vec3 attackerPos = m_positionProvider(attackerId);
+    glm::vec3 targetPos = m_positionProvider(targetId);
+    
+    float dist = glm::distance(attackerPos, targetPos);
+    return dist <= MELEE_RANGE;
 }
 
 bool CombatSystem::hasLineOfSight(const EntityId& attackerId, const EntityId& targetId) const {
-    // TODO: Implement raycasting for line of sight
-    return true;
+    if (!m_positionProvider) {
+        return true; 
+    }
+
+    // Calculate specific anatomical positions
+    glm::vec3 attackerEyePos = m_positionProvider(attackerId) + glm::vec3(0.0f, 1.6f, 0.0f);
+    glm::vec3 targetCenterPos = m_positionProvider(targetId) + glm::vec3(0.0f, 1.0f, 0.0f);
+    
+    // Use the coordinates to ensure the target isn't further than maximum possible vision distance
+    float visionDistance = glm::distance(attackerEyePos, targetCenterPos);
+    
+    // TODO: When ready, replace this with your World voxel raycast.
+    // For now, this mathematically verifies they are within visual range.
+    return visionDistance <= RANGED_RANGE; 
 }
 
 float CombatSystem::getCritMultiplier() const {

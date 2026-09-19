@@ -1,6 +1,7 @@
 #include "ServerPlayer.h"
 #include <iostream>
 #include <chrono>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>
 
 namespace clonemine {

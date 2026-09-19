@@ -6,13 +6,14 @@
 
 namespace clonemine {
 
-enum class PhysicalDamageType {
+enum class ElementalDamageType {
+    // Physical Subtypes
     PIERCING,   // Arrows, daggers, bites
     SLASHING,   // Swords, axes, claws
-    BLUNT       // Maces, hammers, headbutts
-};
+    BLUNT,      // Maces, hammers, headbutts
+    PHYSICAL, // generic fallback
 
-enum class ElementalDamageType {
+    // Magical Elements
     FIRE,           // Fire damage
     ICE,            // Ice/frost damage
     NATURE,         // Nature damage (can heal)
@@ -40,6 +41,11 @@ enum class MagicCapability {
 
 inline int getMagicCapabilities(ElementalDamageType type) {
     switch (type) {
+        case ElementalDamageType::PIERCING:
+        case ElementalDamageType::SLASHING:
+        case ElementalDamageType::BLUNT:
+        case ElementalDamageType::PHYSICAL:
+          return 0;
         case ElementalDamageType::FIRE:      return static_cast<int>(MagicCapability::ATTACK);
         case ElementalDamageType::ICE:       return static_cast<int>(MagicCapability::ATTACK) | static_cast<int>(MagicCapability::BARRIER);
         case ElementalDamageType::NATURE:    return static_cast<int>(MagicCapability::ATTACK) | static_cast<int>(MagicCapability::HEAL);
@@ -71,15 +77,10 @@ inline bool canBarrier(ElementalDamageType type) {
 }
 
 struct DamageComponent {
-    PhysicalDamageType physicalType;
     ElementalDamageType elementalType;
     float percentage;  // 0.0 to 1.0
-    
-    DamageComponent(PhysicalDamageType phys, float pct)
-        : physicalType(phys), elementalType(ElementalDamageType::NONE), percentage(pct) {}
-    
     DamageComponent(ElementalDamageType elem, float pct)
-        : physicalType(PhysicalDamageType::PIERCING), elementalType(elem), percentage(pct) {}
+        : elementalType(elem), percentage(pct) {}
 };
 
 struct DamageInfo {
@@ -113,18 +114,13 @@ struct ResistanceProfile {
     float conjuringResist = 0.0f;
     float psionicResist = 0.0f;
     float waterResist = 0.0f;
-    
-    float getResistance(PhysicalDamageType type) const {
-        switch(type) {
-            case PhysicalDamageType::PIERCING: return piercingResist;
-            case PhysicalDamageType::SLASHING: return slashingResist;
-            case PhysicalDamageType::BLUNT: return bluntResist;
-        }
-        return 0.0f;
-    }
-    
+       
     float getResistance(ElementalDamageType type) const {
         switch(type) {
+            case ElementalDamageType::PIERCING: return piercingResist;
+            case ElementalDamageType::SLASHING: return slashingResist;
+            case ElementalDamageType::BLUNT: return bluntResist;
+            case ElementalDamageType::PHYSICAL: return (piercingResist + slashingResist + bluntResist) / 3.0f; // Generic fallback
             case ElementalDamageType::FIRE: return fireResist;
             case ElementalDamageType::ICE: return iceResist;
             case ElementalDamageType::NATURE: return natureResist;

@@ -133,6 +133,8 @@ void WorldRenderer::endFrame() {
 
 void WorldRenderer::renderWorld(const World& world) {
     // Render world terrain within render distance
+    //TODO: Implement actual world terrain rendering logic based on the camera position and render distance
+    (void)world;
     std::cout << "[WorldRenderer] Rendering world terrain (distance: " 
               << m_settings.worldRenderDistance << " units)" << std::endl;
     // Actual rendering would be done by the Vulkan renderer

@@ -1,5 +1,6 @@
 #include "GameServer.h"
 #include "../network/NetworkMessage.h"
+#include "../combat/CombatSystem.h"
 #include <iostream>
 #include <chrono>
 #include <filesystem>
@@ -9,12 +10,30 @@ namespace server {
 
 GameServer::GameServer(uint16_t port)
     : m_world(std::make_unique<World>())
+    , m_combatSystem(std::make_unique<CombatSystem>())
     , m_port(port)
 {
     std::cout << "Initializing game server on port " << port << "..." << std::endl;
     
     // Create saves directory if it doesn't exist
     std::filesystem::create_directories("server_saves");
+    
+    // Wire up the position lookup for the combat system
+    m_combatSystem->setPositionProvider([this](const clonemine::EntityId& entityId) -> glm::vec3 {
+        // Look up players in the m_players map
+        if (entityId.type == clonemine::EntityType::PLAYER) {
+            for (const auto& [id, player] : m_players) {
+                if (player->getName() == entityId.name) {
+                    return player->getPlayer().getPosition();
+                }
+            }
+        }
+        
+        // If it's a monster/NPC, add lookup logic here later
+        // e.g., return m_world->getMonsterPosition(entityId.name);
+        
+        return glm::vec3(0.0f); // Default fallback
+    });
 }
 
 GameServer::~GameServer() {
@@ -209,6 +228,9 @@ void GameServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
 void GameServer::updateGame(float deltaTime) {
     // Update world
     m_world->update(deltaTime);
+    
+    // Update combat system
+    m_combatSystem->update(deltaTime);
     
     // Update all players
     std::vector<uint32_t> disconnectedPlayers;

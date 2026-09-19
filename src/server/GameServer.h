@@ -4,6 +4,7 @@
 #include "../world/World.h"
 #include "../world/Chunk.h"
 #include "../save/SaveSystem.h"
+#include "../combat/CombatSystem.h" // Added this include
 #include <asio.hpp>
 #include <memory>
 #include <unordered_map>
@@ -27,7 +28,7 @@ public:
     void run();
     
     [[nodiscard]] bool isRunning() const { return m_running; }
-    
+
 private:
     void acceptConnections();
     void handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> socket);
@@ -45,6 +46,7 @@ private:
     
     // Game state
     std::unique_ptr<World> m_world;
+    std::unique_ptr<CombatSystem> m_combatSystem; // Added this variable
     std::unordered_map<uint32_t, std::unique_ptr<ServerPlayer>> m_players;
     uint32_t m_nextPlayerId{1};
     

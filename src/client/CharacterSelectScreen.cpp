@@ -35,6 +35,8 @@ void CharacterSelectScreen::processInput() {
 }
 
 void CharacterSelectScreen::update(float deltaTime) {
+    //TODO: Implement character select screen update logic if needed
+    (void)deltaTime;
     // Character select screen update logic
     // Timeout is handled by ClientApplication
 }
@@ -62,7 +64,7 @@ void CharacterSelectScreen::render() {
             const auto& character = m_characters[i];
             std::cout << (i == static_cast<size_t>(m_selectedIndex) ? "> " : "  ");
             std::cout << character.name << " - Level " << character.level 
-                      << " " << character.characterClass << std::endl;
+                      << " " << character.className << std::endl;
         }
         
         if (m_characters.size() < 5) {

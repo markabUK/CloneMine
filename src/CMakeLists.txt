@@ -224,6 +224,7 @@ if(Vulkan_FOUND)
         world/Block.cpp
         plugin/PluginManager.cpp
         plugin/LuaSandbox.cpp
+        plugin/PluginAPI.cpp
     )
 
     set(HEADERS

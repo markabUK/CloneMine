@@ -2,6 +2,8 @@
 #include "../network/NetworkMessage.h"
 #include <chrono>
 #include <iostream>
+#include "../world/Chunk.h"
+#include "../plugin/LuaSandbox.h"
 
 namespace clonemine {
 namespace client {
@@ -13,9 +15,9 @@ ClientApplication::ClientApplication(std::string_view title, uint32_t width, uin
     , m_world(std::make_unique<World>())
     , m_pluginManager(std::make_unique<PluginManager>())
     , m_networkClient(std::make_unique<NetworkClient>())
+    , m_currentScreen(ClientScreen::LOGIN) // Moved up to match header declaration order
     , m_loginScreen(std::make_unique<LoginScreen>())
     , m_characterSelectScreen(std::make_unique<CharacterSelectScreen>())
-    , m_currentScreen(ClientScreen::LOGIN) // Ensure we start at LOGIN screen
 {
     // Load plugins from the plugins directory
     m_pluginManager->loadPluginsFromDirectory("plugins");
@@ -521,7 +523,9 @@ void ClientApplication::checkCharacterSelectTimeout(float deltaTime) {
     float currentTime = getCurrentTime();
     float timeSinceActivity = m_characterSelectScreen->getLastActivityTime();
     float inactiveTime = currentTime - timeSinceActivity;
-    
+
+    //TODO: Implement character select timeout handling with deltaTime
+    (void)deltaTime;
     // Check if no actions for 2 hours
     if (inactiveTime >= CHARACTER_SELECT_TIMEOUT) {
         std::cout << "Character select timeout - returning to login" << std::endl;

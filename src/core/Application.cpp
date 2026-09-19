@@ -1,10 +1,12 @@
-#include "core/Application.h"
-#include "core/Window.h"
+#include "Window.h"
 #include "rendering/Renderer.h"
 #include "world/World.h"
 #include "plugin/PluginManager.h"
 #include <chrono>
 #include <stdexcept>
+#include "Application.h"
+#include "../world/Chunk.h"
+#include "../plugin/LuaSandbox.h"
 
 namespace clonemine {
 

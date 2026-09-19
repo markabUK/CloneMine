@@ -175,14 +175,14 @@ private:
     bool m_flying = false;
     
     // Physics constants
-    const float GRAVITY = 9.8f;
-    const float WALK_SPEED = 4.3f;
-    const float SPRINT_SPEED = 5.6f;
-    const float JUMP_VELOCITY = 8.0f;
+    static constexpr float GRAVITY = 9.8f;
+    static constexpr float WALK_SPEED = 4.3f;
+    static constexpr float SPRINT_SPEED = 5.6f;
+    static constexpr float JUMP_VELOCITY = 8.0f;
     
     // Resource regeneration
     float m_resourceRegenTimer = 0.0f;
-    const float RESOURCE_REGEN_RATE = 5.0f; // per second (out of combat)
+    static constexpr float RESOURCE_REGEN_RATE = 5.0f; // per second (out of combat)
     
     // Helper functions
     void applyGravity(float deltaTime);

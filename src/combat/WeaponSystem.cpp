@@ -6,20 +6,20 @@ namespace clonemine {
 
 // Default unarmed weapon (fists)
 Weapon WeaponSystem::s_unarmedWeapon = {
-    0,                      // id
-    "Unarmed",              // name
-    WeaponType::FIST,       // type
-    MagicSchool::NONE,      // magicSchool
-    1.0f,                   // minDamage
-    3.0f,                   // maxDamage
-    1.5f,                   // attackSpeed (attacks per second)
-    5.0f,                   // range (melee)
-    "",                     // projectileType
-    0.0f,                   // projectileSpeed
-    1,                      // levelRequired
-    0,                      // strengthRequired
-    0,                      // agilityRequired
-    0                       // intellectRequired
+    .id = 0,
+    .name = "Unarmed",
+    .type = WeaponType::FIST,
+    .magicSchool = MagicSchool::NONE,
+    .minDamage = 1.0f,
+    .maxDamage = 3.0f,
+    .attackSpeed = 1.5f,
+    .range = 5.0f,
+    .projectileType = "",
+    .projectileSpeed = 0.0f,
+    .levelRequired = 1,
+    .strengthRequired = 0,
+    .agilityRequired = 0,
+    .intellectRequired = 0
 };
 
 WeaponSystem::WeaponSystem() {
@@ -119,7 +119,7 @@ std::string WeaponSystem::getProjectileType(const EntityId& entityId) const {
         case WeaponType::WAND:
             switch (weapon->magicSchool) {
                 case MagicSchool::FIRE: return "fire_bolt";
-                case MagicSchool::FROST: return "frost_bolt";
+                case MagicSchool::ICE: return "frost_bolt";
                 case MagicSchool::ARCANE: return "arcane_bolt";
                 case MagicSchool::NATURE: return "nature_bolt";
                 case MagicSchool::SHADOW: return "shadow_bolt";
@@ -250,7 +250,7 @@ Weapon WeaponSystem::createWand(uint32_t id, const std::string& name, float minD
         case MagicSchool::FIRE:
             weapon.projectileType = "fire_bolt";
             break;
-        case MagicSchool::FROST:
+        case MagicSchool::ICE:
             weapon.projectileType = "frost_bolt";
             break;
         case MagicSchool::ARCANE:
