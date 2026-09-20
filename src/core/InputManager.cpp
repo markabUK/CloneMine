@@ -70,6 +70,7 @@ glm::vec3 InputManager::getMovementInput() const {
 }
 
 void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    //TODO: Implement actual key handling logic here
     (void)scancode;
     (void)mods;
     
@@ -106,6 +107,7 @@ void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int ac
 }
 
 void InputManager::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    //TODO: Implement actual mouse button handling logic here
     (void)mods;
     
     auto* manager = static_cast<InputManager*>(glfwGetWindowUserPointer(window));

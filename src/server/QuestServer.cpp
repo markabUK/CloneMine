@@ -330,18 +330,21 @@ void QuestServer::sendAvailableQuests(uint32_t playerId) {
 
 void QuestServer::handleQuestRequest(uint32_t playerId, const std::vector<uint8_t>& data) {
     // Handle quest accept/complete requests
+    //TODO: Implement handling quest accept/complete requests from the client
     (void)playerId;
     (void)data;
 }
 
 void QuestServer::handleProgressUpdate(uint32_t playerId, const std::vector<uint8_t>& data) {
     // Handle progress updates from game server
+    //TODO: Implement handling progress updates from the game server
     (void)playerId;
     (void)data;
 }
 
 void QuestServer::sendQuestProgress(uint32_t playerId, uint32_t questId) {
     // Send current progress for a quest
+    //TODO: Implement sending quest progress to the client
     (void)playerId;
     (void)questId;
 }

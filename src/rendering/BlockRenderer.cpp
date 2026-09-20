@@ -208,11 +208,13 @@ bool BlockRenderer::isSolid(BlockType type) {
 
 void BlockRenderer::createVertexBuffer(ChunkMesh& mesh) {
     // Placeholder - actual Vulkan buffer creation would go here
+    //TODO: Implement actual Vulkan vertex buffer creation for the chunk mesh
     (void)mesh;
 }
 
 void BlockRenderer::createIndexBuffer(ChunkMesh& mesh) {
     // Placeholder - actual Vulkan buffer creation would go here
+    //TODO: Implement actual Vulkan index buffer creation for the chunk mesh
     (void)mesh;
 }
 
@@ -248,6 +250,7 @@ void BlockRenderer::updateChunk(const glm::ivec3& chunkPos, const std::vector<Bl
 
 void BlockRenderer::render(VkCommandBuffer cmd, const glm::mat4& viewProj, const glm::vec3& cameraPos) {
     // Render all chunks within view distance
+    //TODO: Implement actual Vulkan rendering for each visible chunk
     (void)cmd;
     (void)viewProj;
     (void)cameraPos;
@@ -258,6 +261,7 @@ void BlockRenderer::render(VkCommandBuffer cmd, const glm::mat4& viewProj, const
 void BlockRenderer::greedyMesh(const std::vector<BlockType>& blocks, ChunkMesh& mesh) {
     // Greedy meshing optimization - combines adjacent same-type faces
     // Implementation would scan for runs of identical faces and merge them
+    //TODO: Implement the greedy meshing algorithm to optimize chunk rendering
     (void)blocks;
     (void)mesh;
 }

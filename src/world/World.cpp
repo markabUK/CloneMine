@@ -9,6 +9,7 @@ World::World() {
 
 void World::update(float deltaTime) {
     // World update logic (physics, block updates, etc.)
+    //TODO: Implement chunk loading/unloading and other world update logic
     (void)deltaTime; // Suppress unused parameter warning
 }
 

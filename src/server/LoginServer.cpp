@@ -203,6 +203,7 @@ void LoginServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> soc
 }
 
 void LoginServer::handleHandshake(uint32_t sessionId, const std::vector<uint8_t>& data) {
+    //TODO: Implement handshake verification logic
     (void)sessionId;
     (void)data;
     // Handshake verification (simplified)

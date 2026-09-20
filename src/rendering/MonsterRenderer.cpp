@@ -296,6 +296,7 @@ void MonsterRenderer::applyAnimation(const MonsterModel& model,
                                      const AnimationState& anim,
                                      std::vector<glm::mat4>& boneTransforms) {
     // Simple procedural animation based on animation type
+    //TODO: Implement actual skeletal animation application here
     (void)model;
     (void)anim;
     (void)boneTransforms;
@@ -334,6 +335,7 @@ void MonsterRenderer::renderMonster(VkCommandBuffer cmd,
                                     const glm::quat& rotation,
                                     const AnimationState& anim,
                                     float scale) {
+    //TODO: Implement actual Vulkan monster rendering here
     (void)cmd;
     (void)monsterType;
     (void)position;
@@ -346,6 +348,7 @@ void MonsterRenderer::renderMonster(VkCommandBuffer cmd,
 
 void MonsterRenderer::createVulkanBuffers(MonsterModel& model) {
     // Placeholder - actual Vulkan buffer creation
+    //TODO: Implement Vulkan buffer creation for the monster model
     (void)model;
 }
 

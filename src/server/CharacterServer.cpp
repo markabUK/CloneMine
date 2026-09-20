@@ -462,6 +462,7 @@ void CharacterServer::sendCharacterList(uint32_t sessionId) {
 bool CharacterServer::validateSessionToken(const std::string& token, std::string& outUsername) {
     // In production, validate with login server or shared session storage
     // For now, simplified validation
+    //TODO: Implement proper session token validation logic
     (void)token;
     outUsername = "test"; // Placeholder
     return true;
@@ -667,6 +668,7 @@ void CharacterServer::handleLoadCharacterRequest(uint32_t sessionId, const std::
 }
 
 void CharacterServer::handleSaveCharacterRequest(uint32_t sessionId, const std::vector<uint8_t>& data) {
+    //TODO: Implement handling save character requests from the game server     
     (void)sessionId;
     
     // Parse character ID
@@ -678,6 +680,7 @@ void CharacterServer::handleSaveCharacterRequest(uint32_t sessionId, const std::
 }
 
 void CharacterServer::handleUpdateCharacterRequest(uint32_t sessionId, const std::vector<uint8_t>& data) {
+    //TODO: Implement handling character state updates from the game server
     (void)sessionId;
     
     // Parse character ID and state (simplified - should deserialize full CharacterData)
