@@ -360,3 +360,195 @@ Deploy to different hosts with Docker Swarm or Kubernetes for true distribution.
 **Auth Failure**: Ensure Login→Character flow is correct  
 
 All servers print their configuration on startup - verify addresses match expectations.
+
+
+# Notes
+
+You can test the chat server with a quick python script.
+
+You would run the script like this where Alice is the username:
+
+``` shell
+python3 chat_client.py Alice 
+
+```
+
+If you spin up several terminals with different users you can see it send a receive the messages
+
+
+Here is the python script:
+
+``` python
+import socket
+import struct
+import threading
+import sys
+
+HOST = '127.0.0.1'
+PORT = 25566
+SECRET_KEY = "CloneMineSharedSecret2024"
+
+class PacketEncryption:
+    """Python implementation matching clonemine::network::PacketEncryption"""
+    def __init__(self, secret_key: str):
+        self.counter = 0
+        self.key = bytearray(32)
+        self.derive_key(secret_key)
+
+    def derive_key(self, secret_key: str):
+        for i, char in enumerate(secret_key):
+            self.key[i % 32] ^= ord(char)
+        
+        for _ in range(4):
+            for i in range(32):
+                temp = self.key[i]
+                temp = ((temp << 3) & 0xFF) | (temp >> 5)
+                temp ^= self.key[(i + 7) % 32]
+                self.key[i] = temp
+
+    def get_key_byte(self, index: int) -> int:
+        mixed = self.counter ^ ((index * 0x9E3779B9) & 0xFFFFFFFF)
+        return self.key[index % 32] ^ (mixed & 0xFF)
+
+    def encrypt(self, data: bytearray):
+        for i in range(len(data)):
+            data[i] ^= self.get_key_byte(i)
+        self.counter = (self.counter + 1) & 0xFFFFFFFF
+
+    def decrypt(self, data: bytearray):
+        self.encrypt(data)
+
+
+def serialize_connect_request(player_id: int, player_name: str) -> bytearray:
+    buffer = bytearray()
+    CONNECT_REQUEST_TYPE = 0  # CONNECT_REQUEST enum value
+    buffer.append(CONNECT_REQUEST_TYPE)
+    buffer.extend(struct.pack('<I', player_id))
+    
+    name_bytes = player_name.encode('utf-8')
+    buffer.extend(struct.pack('<I', len(name_bytes)))
+    buffer.extend(name_bytes)
+    return buffer
+
+
+def serialize_chat_message(sender: str, message: str) -> bytearray:
+    buffer = bytearray()
+    CHAT_MESSAGE_TYPE = 40  # Matches C++ enum CHAT_MESSAGE = 40
+    buffer.append(CHAT_MESSAGE_TYPE)
+    
+    # 1. Sender string (4 bytes length + string bytes)
+    sender_bytes = sender.encode('utf-8')
+    buffer.extend(struct.pack('<I', len(sender_bytes)))
+    buffer.extend(sender_bytes)
+    
+    # 2. Message string (4 bytes length + string bytes)
+    msg_bytes = message.encode('utf-8')
+    buffer.extend(struct.pack('<I', len(msg_bytes)))
+    buffer.extend(msg_bytes)
+    
+    return buffer
+
+
+def receive_loop(sock, encryptor):
+    """Continuously listens for, decrypts, and prints incoming server packets (history and broadcasts)"""
+    while True:
+        try:
+            size_buf = sock.recv(4)
+            if not size_buf or len(size_buf) < 4:
+                sys.stdout.write("\n[Connection closed by server]\n")
+                sys.stdout.flush()
+                break
+                
+            msg_size = struct.unpack('<I', size_buf)[0]
+            data_buf = sock.recv(msg_size)
+            if not data_buf:
+                break
+                
+            payload = bytearray(data_buf)
+            encryptor.decrypt(payload)
+            
+            if len(payload) > 0:
+                msg_type = payload[0]
+                
+                # Check if it's a ChatMessage (type 40)
+                if msg_type == 40 and len(payload) > 5:
+                    try:
+                        offset = 1
+                        sender_len = struct.unpack('<I', payload[offset:offset+4])[0]
+                        offset += 4
+                        
+                        if offset + sender_len + 4 <= len(payload):
+                            sender = payload[offset:offset+sender_len].decode('utf-8', errors='ignore')
+                            offset += sender_len
+                            
+                            msg_len = struct.unpack('<I', payload[offset:offset+4])[0]
+                            offset += 4
+                            
+                            if offset + msg_len <= len(payload):
+                                message = payload[offset:offset+msg_len].decode('utf-8', errors='ignore')
+                                
+                                # Print chat message cleanly and restore input prompt
+                                sys.stdout.write(f"\r\033[K[CHAT] {sender}: {message}\n")
+                                sys.stdout.write("Enter message: ")
+                                sys.stdout.flush()
+                                continue
+                    except Exception:
+                        pass
+                
+                # Fallback for system packets (like ConnectResponse)
+                sys.stdout.write(f"\r\033[K[System Packet Type {msg_type} Received]\n")
+                sys.stdout.write("Enter message: ")
+                sys.stdout.flush()
+                
+        except Exception:
+            break
+
+
+def run_client():
+    # Get player name from command line argument, default to "PythonTester" if omitted
+    player_name = sys.argv[1] if len(sys.argv) > 1 else "PythonTester"
+    
+    print(f"Connecting to CloneMine Chat Server at {HOST}:{PORT} as '{player_name}'...")
+    
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((HOST, PORT))
+        print("Connected successfully!")
+        
+        encryptor = PacketEncryption(SECRET_KEY)
+        
+        # 1. Send Connection Request Handshake
+        connect_payload = serialize_connect_request(player_id=123, player_name=player_name)
+        encryptor.encrypt(connect_payload)
+        sock.sendall(struct.pack('<I', len(connect_payload)) + connect_payload)
+        
+        # 2. Start background listener thread immediately
+        listener = threading.Thread(target=receive_loop, args=(sock, encryptor), daemon=True)
+        listener.start()
+        
+        print(f"\nLogged in as {player_name}. Type your messages below. Type 'exit' to quit.\n")
+        
+        # 3. Interactive loop to send chat messages
+        while True:
+            message = input("Enter message: ")
+            if not message:
+                continue
+            if message.lower() == 'exit':
+                break
+            
+            chat_payload = serialize_chat_message(sender=player_name, message=message)
+            encryptor.encrypt(chat_payload)
+            
+            full_packet = struct.pack('<I', len(chat_payload)) + chat_payload
+            sock.sendall(full_packet)
+            
+    except ConnectionRefusedError:
+        print("Connection refused. Is CloneMineChatServer running?")
+    except KeyboardInterrupt:
+        print("\nExiting client...")
+    finally:
+        sock.close()
+
+if __name__ == "__main__":
+    run_client()
+```
