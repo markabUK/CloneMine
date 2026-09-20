@@ -4,16 +4,36 @@
 #include <iostream>
 #include <memory>
 #include <csignal>
+#include <atomic>
+#include <thread>
+#include <chrono>
 #include "trading/AuctionHouse.h"
 #include "config/ServerConfig.h"
-#include <thread>
 
-static bool g_running = true;
+// Global pointers/variables so the signal handler can perform shutdown actions directly
+static AuctionHouse* g_auctionHouse = nullptr;
+static int g_secondsRunning = 0;
+static std::atomic<bool> g_running{true};
 
 void signalHandler(int signal) {
     if (signal == SIGINT || signal == SIGTERM) {
-        std::cout << "\n[AuctionServer] Shutdown signal received" << std::endl;
-        g_running = false;
+        std::cout << "\n[AuctionServer] Shutdown signal received (" << signal << ")" << std::endl;
+        std::cout << "[AuctionServer] Shutting down..." << std::endl;
+        
+        if (g_auctionHouse) {
+            // Save auction state immediately on signal
+            g_auctionHouse->saveToFile("game_data/auctions/active_auctions.json");
+            
+            std::cout << "[AuctionServer] Final stats:" << std::endl;
+            std::cout << "  Active auctions: " << g_auctionHouse->getActiveAuctionCount() << std::endl;
+            std::cout << "  Total processed: " << g_auctionHouse->getTotalAuctionsProcessed() << std::endl;
+            std::cout << "  Uptime: " << (g_secondsRunning / 60) << " minutes" << std::endl;
+        }
+        
+        std::cout << "[AuctionServer] Shutdown complete" << std::endl;
+        
+        // Force immediate exit so it doesn't wait on the loop or boolean flags
+        std::exit(0);
     }
 }
 
@@ -48,12 +68,13 @@ int main(int argc, char* argv[]) {
     std::cout << "Quest Server: " << config.questServerHost << ":" << config.questServerPort << std::endl;
     std::cout << std::endl;
     
-    // Setup signal handlers
+    // Create auction house and assign global pointer for signal handling
+    auto auctionHouse = std::make_unique<AuctionHouse>();
+    g_auctionHouse = auctionHouse.get();
+    
+    // Setup signal handlers after pointers are ready
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
-    
-    // Create auction house
-    auto auctionHouse = std::make_unique<AuctionHouse>();
     
     // Load existing auctions from disk
     auctionHouse->loadFromFile("game_data/auctions/active_auctions.json");
@@ -64,14 +85,9 @@ int main(int argc, char* argv[]) {
     std::cout << "[AuctionServer] Press Ctrl+C to stop" << std::endl;
     std::cout << std::endl;
     
-    // TODO: Initialize ASIO TCP server on specified port
-    // TODO: Accept client connections
-    // TODO: Handle auction queries and transactions
-    
     // Main server loop
     const float updateInterval = 1.0f; // Update every second
     auto lastUpdate = std::chrono::steady_clock::now();
-    int secondsRunning = 0;
     
     while (g_running) {
         auto now = std::chrono::steady_clock::now();
@@ -79,43 +95,28 @@ int main(int argc, char* argv[]) {
         
         if (deltaTime >= updateInterval) {
             lastUpdate = now;
-            secondsRunning++;
+            g_secondsRunning++;
             
             // Update auction expirations
             auctionHouse->update();
             
             // Periodic status report (every 60 seconds)
-            if (secondsRunning % 60 == 0) {
+            if (g_secondsRunning % 60 == 0) {
                 std::cout << "[AuctionServer] Status - Active: " 
                           << auctionHouse->getActiveAuctionCount()
                           << ", Processed: " << auctionHouse->getTotalAuctionsProcessed()
-                          << ", Uptime: " << (secondsRunning / 60) << " minutes" << std::endl;
+                          << ", Uptime: " << (g_secondsRunning / 60) << " minutes" << std::endl;
             }
             
             // Save auctions periodically (every 5 minutes)
-            if (secondsRunning % 300 == 0) {
+            if (g_secondsRunning % 300 == 0) {
                 auctionHouse->saveToFile("game_data/auctions/active_auctions.json");
             }
         }
         
-        // TODO: Process network messages
-        
-        // Sleep briefly to avoid busy-waiting
+        // Sleep briefly to remain responsive
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    
-    // Shutdown
-    std::cout << "[AuctionServer] Shutting down..." << std::endl;
-    
-    // Save auction state
-    auctionHouse->saveToFile("game_data/auctions/active_auctions.json");
-    
-    std::cout << "[AuctionServer] Final stats:" << std::endl;
-    std::cout << "  Active auctions: " << auctionHouse->getActiveAuctionCount() << std::endl;
-    std::cout << "  Total processed: " << auctionHouse->getTotalAuctionsProcessed() << std::endl;
-    std::cout << "  Uptime: " << (secondsRunning / 60) << " minutes" << std::endl;
-    
-    std::cout << "[AuctionServer] Shutdown complete" << std::endl;
     
     return 0;
 }

@@ -3,13 +3,17 @@
 #include <iostream>
 #include <csignal>
 #include <atomic>
+#include <thread>
+#include <chrono>
 
-std::atomic<bool> g_running{true};
+// Global server pointer for safe signal handling
+clonemine::server::LoginServer* g_server = nullptr;
 
 void signalHandler(int signal) {
-    (void)signal;
     std::cout << "\nReceived signal " << signal << ", shutting down..." << std::endl;
-    g_running = false;
+    if (g_server) {
+        g_server->stop(); // Unblocks server.run()
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -54,22 +58,18 @@ int main(int argc, char* argv[]) {
               << config.characterServerHost << ":" << config.characterServerPort << "\n";
     std::cout << std::endl;
     
-    // Register signal handlers
-    std::signal(SIGINT, signalHandler);
-    std::signal(SIGTERM, signalHandler);
-    
     try {
         clonemine::server::LoginServer server(port, maxCharacters);
+        g_server = &server;
+        
+        // Register signal handlers after server instance is ready
+        std::signal(SIGINT, signalHandler);
+        std::signal(SIGTERM, signalHandler);
+        
         server.start();
-        server.run();
+        server.run(); // Blocks until server.stop() is invoked
         
-        // Wait for shutdown signal
-        while (g_running && server.isRunning()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-        
-        server.stop();
-        
+        g_server = nullptr;
     } catch (const std::exception& e) {
         std::cerr << "Fatal error: " << e.what() << std::endl;
         return 1;

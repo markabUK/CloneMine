@@ -3,13 +3,17 @@
 #include <iostream>
 #include <csignal>
 #include <atomic>
+#include <thread>
+#include <chrono>
 
-std::atomic<bool> g_running{true};
+// Global server pointer so the signal handler can safely stop it
+clonemine::server::ChatServer* g_server = nullptr;
 
 void signalHandler(int signal) {
-    (void)signal;
     std::cout << "\nReceived signal " << signal << ", shutting down..." << std::endl;
-    g_running = false;
+    if (g_server) {
+        g_server->stop(); // This unblocks server.run() and shuts down the network loop
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -39,22 +43,18 @@ int main(int argc, char* argv[]) {
     std::cout << "Character names provided by clients during connection\n";
     std::cout << std::endl;
     
-    // Register signal handlers
-    std::signal(SIGINT, signalHandler);
-    std::signal(SIGTERM, signalHandler);
-    
     try {
         clonemine::server::ChatServer server(port);
+        g_server = &server; // Assign global pointer
+        
+        // Register signal handlers after server is initialized
+        std::signal(SIGINT, signalHandler);
+        std::signal(SIGTERM, signalHandler);
+        
         server.start();
-        server.run();
+        server.run(); // This will now properly block until server.stop() is called by the signal handler
         
-        // Wait for shutdown signal
-        while (g_running && server.isRunning()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-        
-        server.stop();
-        
+        g_server = nullptr; // Cleanup
     } catch (const std::exception& e) {
         std::cerr << "Fatal error: " << e.what() << std::endl;
         return 1;
