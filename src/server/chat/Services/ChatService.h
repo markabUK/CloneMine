@@ -35,12 +35,14 @@ public:
         // Validate sender
         auto [senderValid, senderError] = validator->ValidateSender(sender);
         if (!senderValid) {
+            std::cout << "[Sender: " << sender << "] [VALIDATION ERROR] Sender failed: " << senderError << std::endl;
             throw std::runtime_error("Invalid sender: " + senderError);
         }
 
         // Validate message
         auto [messageValid, messageError] = validator->ValidateMessage(content);
         if (!messageValid) {
+            std::cout << "[Message Content: " << content << "] [VALIDATION ERROR] Message failed: " << messageError << std::endl;
             throw std::runtime_error("Invalid message: " + messageError);
         }
 

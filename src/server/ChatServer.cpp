@@ -51,15 +51,22 @@ void ChatServer::stop() {
     std::cout << "Stopping chat server..." << std::endl;
     m_running = false;
     
-    // Disconnect all clients
+    // Explicitly close all client sockets to unblock any blocking read threads
     {
         std::lock_guard<std::mutex> lock(m_clientsMutex);
+        for (auto& [id, client] : m_clients) {
+            if (client->socket && client->socket->is_open()) {
+                asio::error_code ignored;
+                client->socket->close(ignored);
+            }
+        }
         m_clients.clear();
     }
     
-    // Stop network
+    // Stop network acceptor
     if (m_acceptor) {
-        m_acceptor->close();
+        asio::error_code ignored;
+        m_acceptor->close(ignored);
     }
     m_ioContext.stop();
     
@@ -74,10 +81,8 @@ void ChatServer::run() {
     std::cout << "Chat server main loop started." << std::endl;
     
     while (m_running) {
-        // Chat server is event-driven, just keep alive
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         
-        // Clean up disconnected clients
         std::lock_guard<std::mutex> lock(m_clientsMutex);
         for (auto it = m_clients.begin(); it != m_clients.end(); ) {
             if (!it->second->connected) {
@@ -98,10 +103,11 @@ void ChatServer::acceptConnections() {
             std::cout << "New chat connection from " << socket->remote_endpoint() << std::endl;
             handleNewConnection(socket);
         } else {
-            std::cerr << "Chat accept error: " << error.message() << std::endl;
+            if (m_running) {
+                std::cerr << "Chat accept error: " << error.message() << std::endl;
+            }
         }
         
-        // Continue accepting
         if (m_running) {
             acceptConnections();
         }
@@ -112,7 +118,6 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
     try {
         auto encryption = std::make_unique<network::PacketEncryption>("CloneMineSharedSecret2024");
         
-        // Read connect message (with size prefix)
         std::vector<uint8_t> sizeBuffer(4);
         asio::read(*socket, asio::buffer(sizeBuffer));
         
@@ -120,7 +125,6 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
                               (sizeBuffer[2] << 16) | (sizeBuffer[3] << 24);
         
         if (messageSize == 0 || messageSize > 1024) {
-            std::cerr << "Invalid chat connect message size" << std::endl;
             socket->close();
             return;
         }
@@ -129,17 +133,14 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
         asio::read(*socket, asio::buffer(buffer));
         encryption->decrypt(buffer);
         
-        // Validate packet
         auto validationResult = network::PacketValidator::validatePacket(
             buffer, network::MessageType::CONNECT_REQUEST);
         
         if (validationResult != network::PacketValidator::ValidationResult::VALID) {
-            std::cerr << "Invalid chat connect packet" << std::endl;
             socket->close();
             return;
         }
         
-        // Parse player name
         if (buffer.size() < 9) {
             socket->close();
             return;
@@ -153,7 +154,6 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
         
         std::string playerName(buffer.begin() + 9, buffer.begin() + 9 + nameLen);
         
-        // Create chat client
         uint32_t clientId = m_nextClientId++;
         auto client = std::make_unique<ChatClient>();
         client->playerId = clientId;
@@ -161,7 +161,6 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
         client->socket = socket;
         client->encryption = std::move(encryption);
         
-        // Send acceptance response
         network::ConnectResponse response;
         response.accepted = true;
         response.assignedPlayerId = clientId;
@@ -180,7 +179,6 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
         asio::write(*socket, asio::buffer(sizeBytes));
         asio::write(*socket, asio::buffer(responseData));
         
-        // Send chat history
         {
             std::lock_guard<std::mutex> historyLock(m_historyMutex);
             for (const auto& [sender, msg] : m_chatHistory) {
@@ -200,12 +198,11 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
                     asio::write(*socket, asio::buffer(sizeBytes));
                     asio::write(*socket, asio::buffer(data));
                 } catch (...) {
-                    break; // Client disconnected
+                    break;
                 }
             }
         }
         
-        // Add to clients
         {
             std::lock_guard<std::mutex> lock(m_clientsMutex);
             m_clients[clientId] = std::move(client);
@@ -213,7 +210,6 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
         
         std::cout << "Chat client " << clientId << " (" << playerName << ") connected" << std::endl;
         
-        // Start receiving messages from this client
         std::thread([this, clientId, socket]() {
             while (m_running) {
                 try {
@@ -230,26 +226,33 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
                     std::vector<uint8_t> data(msgSize);
                     asio::read(*socket, asio::buffer(data));
                     
-                    // Decrypt and handle
-                    std::lock_guard<std::mutex> lock(m_clientsMutex);
-                    auto it = m_clients.find(clientId);
-                    if (it != m_clients.end()) {
-                        it->second->encryption->decrypt(data);
-                        
-                        // Validate
-                        auto validation = network::PacketValidator::validatePacket(
-                            data, network::MessageType::CHAT_MESSAGE);
-                        
-                        if (validation == network::PacketValidator::ValidationResult::VALID) {
-                            handleChatMessage(clientId, data);
+                    bool isValid = false;
+                    {
+                        std::lock_guard<std::mutex> lock(m_clientsMutex);
+                        auto it = m_clients.find(clientId);
+                        if (it != m_clients.end()) {
+                            it->second->encryption->decrypt(data);
+                            auto validation = network::PacketValidator::validatePacket(
+                                data, network::MessageType::CHAT_MESSAGE);
+                            isValid = (validation == network::PacketValidator::ValidationResult::VALID);
                         }
                     }
+                    
+                    if (isValid) {
+                        handleChatMessage(clientId, data);
+                    } else {
+                        std::cerr << "[ERROR] Chat validation failed for client " << clientId << std::endl;
+                    }
+                } catch (const std::exception& e) {
+                    if (m_running) {
+                        std::cout << "[DEBUG] Reader thread exception for client " << clientId << ": " << e.what() << std::endl;
+                    }
+                    break;
                 } catch (...) {
                     break;
                 }
             }
             
-            // Mark as disconnected
             std::lock_guard<std::mutex> lock(m_clientsMutex);
             auto it = m_clients.find(clientId);
             if (it != m_clients.end()) {
@@ -258,7 +261,9 @@ void ChatServer::handleNewConnection(std::shared_ptr<asio::ip::tcp::socket> sock
         }).detach();
         
     } catch (const std::exception& e) {
-        std::cerr << "Error handling chat connection: " << e.what() << std::endl;
+        if (m_running) {
+            std::cerr << "Error handling chat connection: " << e.what() << std::endl;
+        }
     }
 }
 
@@ -266,27 +271,21 @@ void ChatServer::handleChatMessage(uint32_t playerId, const std::vector<uint8_t>
     if (data.size() < 10) return;
     
     size_t offset = 1;
-    
-    // Parse sender
     uint32_t senderLen = data[offset] | (data[offset+1] << 8) |
                         (data[offset+2] << 16) | (data[offset+3] << 24);
     offset += 4;
     
     if (offset + senderLen + 4 > data.size()) return;
-    
     std::string sender(data.begin() + offset, data.begin() + offset + senderLen);
     offset += senderLen;
     
-    // Parse message
     uint32_t msgLen = data[offset] | (data[offset+1] << 8) |
                      (data[offset+2] << 16) | (data[offset+3] << 24);
     offset += 4;
     
     if (offset + msgLen > data.size()) return;
-    
     std::string message(data.begin() + offset, data.begin() + offset + msgLen);
     
-    // Get actual sender name from client
     std::string actualSender;
     {
         std::lock_guard<std::mutex> lock(m_clientsMutex);
@@ -304,7 +303,6 @@ void ChatServer::handleChatMessage(uint32_t playerId, const std::vector<uint8_t>
 void ChatServer::broadcastMessage(const std::string& sender, const std::string& message) {
     std::cout << "[CHAT] " << sender << ": " << message << std::endl;
     
-    // Add to history
     {
         std::lock_guard<std::mutex> lock(m_historyMutex);
         m_chatHistory.push_back({sender, message});
@@ -313,7 +311,6 @@ void ChatServer::broadcastMessage(const std::string& sender, const std::string& 
         }
     }
     
-    // Broadcast to all clients
     network::ChatMessage chatMsg;
     chatMsg.sender = sender;
     chatMsg.message = message;
